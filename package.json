@@ -1,0 +1,27 @@
+{
+  "name": "feasibility-calculator",
+  "version": "1.0.0",
+  "description": "An Conversionista! app",
+  "main": "app.js",
+  "author": "Ylva Haggblad ylva@conversionista.se",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.22.0",
+    "css-loader": "^0.26.1",
+    "jshint": "^2.9.4",
+    "jshint-loader": "^0.8.3",
+    "node-libs-browser": "^2.0.0",
+    "node-sass": "^4.5.0",
+    "sass-loader": "^4.1.1",
+    "style-loader": "^0.13.1",
+    "webpack": "^2.2.1"
+  },
+  "dependencies": {}
+}
