@@ -4,8 +4,122 @@
 		<meta charset="UTF-8">
 		<title>Experiment feasibility calculator</title>
 	</head>
-  <body>
-  	<h1>Experiment feasibility calculator</h1>
-    <script src="./dist/bundle.js"></script>
-  </body>
+<body>
+	<h1>Experiment feasibility calculator</h1>
+	<p>Required fields are followed by <strong>*</strong>.</p>
+
+	<section id="configuration">
+	<h2>Configuration</h2>
+
+	<form>
+	  <label for="samplingLevel">
+	    <span>Sampling level:</span>
+	    <select id="samplingLevel" name="sampling level">
+	      <option value="default">Default</option>
+	      <option value="faster" selected>Faster</option>
+	      <option value="higher precision">Higher precision</option>
+	    </select>
+	  </label>
+
+	<p>
+	  <label for="samplePeriod">
+	    <span>Sample period (weeks): </span>
+	    <input type="number" id="samplePeriod" name="samplePeriod" required />
+	    <strong>*</strong>
+	  </label>
+	</p>
+
+	<p>
+	  <label for="experimentLength">
+	    <span>Maximum experiment length (weeks): </span>
+	    <input type="number" id="experimentLength" name="experimentLength" required />
+	    <strong>*</strong>
+	  </label>
+	</p>
+
+	<p>
+	<label for="variations">
+		<span>Number of variations: </span>
+	    <input type="number" id="variations" name="variations" required />
+	    <strong>*</strong>
+	  </label>
+	</p>
+
+	<!-- If user should set sample period by date - default should be today - requires validation of input for Safari & Firefox -->
+	<!--
+	<p>
+		<label for="endDate">
+			<span>Sampling period end date: </span>
+	    	<input type="date" id="endDate" name="endDate" placeholder="yyyy-mm-dd" required/>
+	    	<strong>*</strong>
+	 	</label>
+	</p>
+	-->
+
+	<p>
+	<label for="gaViewId">
+		<span>Google analytics view ID: </span>
+	    <input type="number" id="gaViewId" name="gaViewId" required />
+	    <strong>*</strong>
+	  </label>
+	</p>
+	</form>
+	</section>
+
+	<section id="pagesConfiguration">
+	<h2>Pages</h2>	
+	<form id="pageConfigurationForm"> 
+	    <p>
+		    <label for="pathPage">
+		    	<span><strong>Page path:</strong></span>
+		        <input type="text" id="pathPage" name="pathPage" placeholder="/category" />
+		    </label>
+		</p>
+	    <p>
+
+	    <p>
+	    	<label for="actionGoal">
+	    		<span><strong>Action goal:</strong></span>
+	        	<input type="text" id="actionGoal" name="actionGoal" placeholder="ga:eventLabel=@AddToCart" />
+	      	</label>
+	    </p>
+	    <p>
+
+	    <p>
+	    <label for="conversionGoal">
+	    	<span><strong>Conversion goal:</strong></span>
+	        <input type="text" id="conversionGoal" name="conversionGoal" placeholder="ga:transactions>0" />
+	    </label>
+	    </p>
+	    <p>
+
+	    <button id="add">Add</button>
+	</form>
+
+		<section id="pagesToTest" class="hidden">
+		<h3>Pages to test</h3>
+			<table id="pageConfigurationTable">
+				<tbody>
+					<tr id="tableHeaders">
+						<th>Page path</th>
+						<th>Action goal</th>
+						<th>Conversion goal</th>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+	</section>
+
+	<section>
+	<p>
+	  <button id="calculate">Show me where I can A/B-test!</button>
+	</p>
+	</section>
+
+	<section id="result" class="hidden">
+		<h2>Testing result section</h2>
+		<p>Result here</p>
+	</section>
+	<script src="./dist/bundle.js"></script>
+	</body>
 </html>
