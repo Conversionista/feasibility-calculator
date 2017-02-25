@@ -15,9 +15,9 @@
 	  <label for="samplingLevel">
 	    <span>Sampling level:</span>
 	    <select id="samplingLevel" name="samplingLevel">
-	      <option value="default">Default</option>
-	      <option value="faster" selected>Faster</option>
-	      <option value="higher precision">Higher precision</option>
+	      <option value="DEFAULT">Default</option>
+	      <option value="FASTER">Faster</option>
+	      <option value="HIGHER_PRECISION" selected>Higher precision</option>
 	    </select>
 	  </label>
 
@@ -63,6 +63,7 @@
 	    <strong>*</strong>
 	  </label>
 	</p>
+	<button id="auth-button" hidden>Authorize</button>
 	</form>
 	</section>
 
@@ -72,7 +73,7 @@
 	    <p>
 		    <label for="pathPage">
 		    	<span><strong>Page path:</strong></span>
-		        <input type="text" id="pathPage" name="pathPage" placeholder="/category" />
+		        <input type="text" id="pathPage" name="pathPage" placeholder="~\/category\/" />
 		    </label>
 		</p>
 	    <p>
@@ -87,7 +88,7 @@
 
 	    <p>
 	    <label for="conversionGoal">
-	    	<span><strong>Conversion goal:</strong></span>
+	    	<span><strong>Conversion goal:</span></span>
 	        <input type="text" id="conversionGoal" name="conversionGoal" placeholder="ga:transactions>0" />
 	    </label>
 	    </p>
@@ -113,13 +114,35 @@
 	<section>
 	<p>
 	  <button id="calculate">Show me where I can A/B-test!</button>
-	</p>
+	  </p>
 	</section>
 
-	<section id="result" class="hidden">
-		<h2>Testing result section</h2>
-		<p>Result here</p>
+	<section id="result">
+		<h2>Result</h2>
+			<table id="resultTable" class="hidden">
+				<tbody>
+					<tr>
+						<th></th>
+						<th colspan="3">Engagement goal</th>
+						<th colspan="3">Action goal = <span id="actionGoalParam"></span></th>
+						<th colspan="3">Conversion goal = <span id="conversionGoalParam"></span></th>
+						<tr>
+							<td>Regex path match</td>
+							<td>Users</td>
+							<td>Bounce rate</td>
+							<td>Minimum detectable uplift</td>
+							<td>Users</td>
+							<td>Click through rate</td>
+							<td>Minimum detectable uplift</td>
+							<td>Users</td>
+							<td>Conversion rate</td>
+							<td>Minimum detectable uplift</td>
+						</tr>
+					</tr>
+				</tbody>
+			</table>
 	</section>
 	<script src="./dist/bundle.js"></script>
+	<script src="https://apis.google.com/js/client.js?onload=authorize"></script>
 	</body>
 </html>
