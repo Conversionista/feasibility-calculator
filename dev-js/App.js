@@ -10,7 +10,8 @@ let GoogleAuth;
 //	Retrieve the discovery document for version 3 of Google Analytics core reporting API.
 let discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/analytics/v3/rest';
 let resultData = [];
-let callId = 0;	//	init
+let calculatedResult = [];
+let rowId = 0;	//	init, for keeping track of funnels added by user
 //	Access scope for API calls; read only
 const SCOPE = ['https://www.googleapis.com/auth/analytics.readonly'];
 //	client ID for app
@@ -31,6 +32,7 @@ addTableRowBtn.addEventListener("click", appendConfTableRow);
 addTableRowBtn.addEventListener("click", pushPagePath);
 calculateButton.addEventListener("click", addBasicConfiguration);
 calculateButton.addEventListener("click", createRequestStrings);
+calculateButton.addEventListener("click", authorize);
 authButton.addEventListener('click', authorize);
 
 // Function to enable/disable button
@@ -85,16 +87,41 @@ function pushPagePath(evt, tableInput){
 evt.preventDefault(); 
 let inputElements = pageConfigurationForm.elements;
 let newPagePath = {
-	callId : callId,
+	rowId : rowId,
 	pagePath : inputElements[0].value,
 	actionGoal : inputElements[1].value,
 	conversionGoal : inputElements[2].value
 };
 	//	add new object to resultData array for future storage of result
-	resultData.splice(callId, 0, {});
-	callId++;
+	resultData.splice(rowId, 0, {});
+	rowId++;
 	//	push newPagePath to pagePaths array
 	pagePaths.push(newPagePath);
+}
+
+// Initializes the gapi.client object, which app uses to make API requests.
+// Handles the authorization flow.
+function authorize(event) {
+// `immediate` should be false when invoked from the button click.
+	let useImmediate = event ? false : true;
+	let authData = {
+	  client_id: CLIENT_ID,
+	  scope: SCOPE,
+	  immediate: useImmediate
+	};
+
+	gapi.client.load('analytics', 'v3', function () {
+		gapi.auth.authorize(authData, function(response) {
+		//	if user denies the permission of the app to read Google Analytics data, display 'Authorize'-button so that user can authorize later on if wished
+		  if (response.error) {
+		    authButton.hidden = false;
+		  }
+		  else {
+		    authButton.hidden = true;
+		    makeAPICall();
+		  	}
+		});
+	});
 }
 
 //	Function for creating API request string. Arguments - single object from pagePaths array
@@ -102,73 +129,45 @@ function createRequestStrings (event) {
 	let engagementGoal;
 	let actionGoal; 
 	let conversionGoal;
+
 	//	empty requestStrings array to avoid multiple calls
 	//	solution as suggested in http://stackoverflow.com/a/1232046
 	requestStrings.length = 0;
-
+	
 	pagePaths.forEach(function(element){
-		engagementGoal = { 'callId' : element.callId, 'type' : 'engagementGoal',  'pagePath' : element.pagePath, 'metrics': 'ga:users,ga:bounceRate', 'segment' : `users::sequence::ga:pagePath=${element.pagePath}` };
-		actionGoal = { 'callId' : element.callId, 'type' : 'actionGoal', 'pagePath' : element.pagePath, 'metrics': 'ga:users', 'segment' : `users::sequence::ga:pagePath=${element.pagePath}->>${element.actionGoal}` };
-		conversionGoal = { 'callId' : element.callId, 'type' : 'conversionGoal', 'pagePath' : element.pagePath, 'metrics': 'ga:users', 'segment' : `users::sequence::ga:pagePath=${element.pagePath}->>${element.actionGoal}->>${element.conversionGoal}`};
+		engagementGoal = { 'rowId' : element.rowId, 'type' : 'engagementGoal',  'pagePath' : element.pagePath, 'metrics': 'ga:users,ga:bounceRate', 'segment' : `users::sequence::ga:pagePath=${element.pagePath}` };
+		actionGoal = { 'rowId' : element.rowId, 'type' : 'actionGoal', 'pagePath' : element.pagePath, 'metrics': 'ga:users', 'segment' : `users::sequence::ga:pagePath=${element.pagePath};->>${element.actionGoal}` };
+		conversionGoal = { 'rowId' : element.rowId, 'type' : 'conversionGoal', 'pagePath' : element.pagePath, 'metrics': 'ga:users', 'segment' : `users::sequence::ga:pagePath=${element.pagePath};->>${element.actionGoal};->>${element.conversionGoal}`};
 		requestStrings.push(engagementGoal, actionGoal, conversionGoal);
-		//	console.log('requestStrings', requestStrings);		
 	});
-
-	// authorize users and start communication with API when request strings are created
-	authorize(event);
-}
-
-// Initialize the gapi.client object, which app uses to make API requests.
-function authorize(event) {
-// Handles the authorization flow.
-// `immediate` should be false when invoked from the button click.
-gapi.client.load('analytics', 'v3');
-let useImmediate = event ? false : true;
-let authData = {
-  client_id: CLIENT_ID,
-  scope: SCOPE,
-  immediate: useImmediate
-};
-
-gapi.auth.authorize(authData, function(response) {
-//	if user denies the permission of the app to read Google Analytics data, display 'Authorize'-button so that user can authorize later on if wished
-  if (response.error) {
-    authButton.hidden = false;
-  }
-  else {
-    authButton.hidden = true;
-    makeAPICall();
-  	}
-});
 }
 
 //	Function for sending request to Core reporting API when user is authourized
 function makeAPICall () {
 		requestStrings.forEach(function(element){
-		 	//	delay of 0.1s per API call to avoid reaching call limit per second	
-		window.setTimeout(function(){
 			queryCoreReportingApi(element);
-		}, 100)
-		});
-	}
+	});
+}
 
 //	Function for querying the Core reporting API, saves data for each response
 function queryCoreReportingApi(element) {
- gapi.client.analytics.data.ga.get({
-    'ids': 'ga:' + basicConfiguration.gaViewId,		//	  
+ 	gapi.client.analytics.data.ga.get({
+    'ids': 'ga:' + basicConfiguration.gaViewId,	  
     'start-date': `${basicConfiguration.samplePeriod * 7}daysAgo`,  //	user input is in weeks
     'end-date': 'yesterday',
     'samplingLevel' : basicConfiguration.samplingLevel,
     'metrics': element.metrics,
     'segment' : element.segment,
     'max-results' : 10000 //	https://developers.google.com/analytics/devguides/reporting/core/v3/reference#maxResults 
-
   })
   .then(function(response) {
-    var formattedJson = JSON.stringify(response.result, null, 2);
-    console.log(formattedJson);
-    saveResult(response.result, element.callId, element.type, element.pagePath);
+    saveResult(response.result, element.rowId, element.type, element.pagePath);
   })
+  .then(function() {
+	resultData.forEach( function(resultElement){
+		calculateResult(resultElement);
+	});
+   })
   .then(null, function(err) {
       // Log any errors
       console.log(err);
@@ -176,13 +175,14 @@ function queryCoreReportingApi(element) {
 }
 
 //	Function for saving relevant data for calculation from API-response
-function saveResult(result, callId, type, pagePath){
-	let resultObject = resultData[callId];
+function saveResult(result, rowId, type, pagePath){
+	let resultObject = resultData[rowId];
+	Object.assign(resultObject, {"type" : type, "rowId": rowId});
 
 	if(type === "engagementGoal"){
 		let engagementGoalUsers = result["totalsForAllResults"]["ga:users"];
-		let bounceRate = result["totalsForAllResults"]["ga:bounceRate"]
-		Object.assign(resultObject, { 'pagePath': pagePath, 'engagementGoalUsers' : engagementGoalUsers, 'bounceRate' : bounceRate});
+		let bounceRate = result["totalsForAllResults"]["ga:bounceRate"];
+		Object.assign(resultObject, { 'pagePath': pagePath, 'bounceRate' : bounceRate, 'engagementGoalUsers' : engagementGoalUsers});
 	} else if(type === "actionGoal") {
 		let actionGoalUsers = result["totalsForAllResults"]["ga:users"];
 		Object.assign(resultObject, { 'actionGoalUsers' : actionGoalUsers });
@@ -192,7 +192,90 @@ function saveResult(result, callId, type, pagePath){
 	} else {
 		console.log("Unknown type");
 	}
+	console.log(resultData);
 }
+
+//	Function for calculating result
+function calculateResult(element){
+	let bounceRate = element.bounceRate;
+	let engagementGoalUsers = Number(element.engagementGoalUsers);
+	let noOfVariations = basicConfiguration.variations;
+	let maxExperimentLength = basicConfiguration.experimentLength; 
+	let samplePeriod = basicConfiguration.samplePeriod;
+	let type = element.type;
+	
+	if(type === "engagementGoal"){
+		let engagementGoalMDU;
+		let engagementRateShare = (bounceRate !== 0 ? (1 - (bounceRate/100)) : 1);
+		
+		if(engagementGoalUsers !== 0){
+			engagementGoalMDU = engagementGoalMinDetectUplift(noOfVariations, engagementRateShare, engagementGoalUsers, samplePeriod, maxExperimentLength);	
+		}else{
+			engagementGoalMDU = ("N/A");
+		}
+		console.log('emdu', engagementGoalMDU);
+	
+	} else if(type === "actionGoal") {
+		let actionCTR;
+		let actionGoalMDU;
+		let actionGoalUsers = Number(element.actionGoalUsers);
+		
+		if(actionGoalUsers && engagementGoalUsers !== 0 ){
+			actionCTR = actionGoalClickThroughRate(actionGoalUsers, engagementGoalUsers);
+			actionGoalMDU = actionGoalMinDetectUplift(noOfVariations, actionCTR, engagementGoalUsers, samplePeriod, maxExperimentLength);
+		} else {
+			actionCTR = ("N/A");
+			actionGoalMDU = ("N/A");
+		}
+		console.log('actr, acmdu', actionCTR, actionGoalMDU);
+	
+	} else if(type === "conversionGoal") {
+		let CR;
+		let conversionGoalMDU;
+		let conversionGoalUsers = Number(element.conversionGoalUsers);
+		
+		if(conversionGoalUsers !== 0 && engagementGoalUsers !== 0){
+			CR = conversionRate(conversionGoalUsers, engagementGoalUsers);
+			conversionGoalMDU = conversionGoalMinDetectUplift(noOfVariations, CR, engagementGoalUsers, samplePeriod, maxExperimentLength);	
+		}else{
+			CR = ("N/A");
+			conversionGoalMDU = ("N/A");
+		}
+		console.log('cr, crmdu', CR, conversionGoalMDU);
+	
+	} else {
+		console.log("Unknown type");
+	}
+}
+
+function engagementGoalMinDetectUplift(noOfVariations, engagementRateShare, engagementGoalUsers, samplePeriod, maxExperimentLength){
+	let engagementGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-engagementRateShare)/engagementRateShare/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	return engagementGoalMinDetectUplift;
+}
+	
+function actionGoalClickThroughRate(actionGoalUsers, engagementGoalUsers){
+	let actionGoalClickThroughRate = (actionGoalUsers/engagementGoalUsers);
+	return actionGoalClickThroughRate;
+}
+
+function actionGoalMinDetectUplift(noOfVariations, actionGoalClickThroughRate, engagementGoalUsers, samplePeriod, maxExperimentLength){
+	let actionGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-actionGoalClickThroughRate)/actionGoalClickThroughRate/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	return actionGoalMinDetectUplift;
+}
+
+function conversionRate(conversionGoalUsers, engagementGoalUsers){
+	let conversionRate = (conversionGoalUsers/engagementGoalUsers);
+	return conversionRate;
+}
+
+function conversionGoalMinDetectUplift(noOfVariations, conversionRate, engagementGoalUsers, samplePeriod, maxExperimentLength){
+	let conversionGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-conversionRate)/conversionRate/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	return conversionGoalMinDetectUplift;
+}
+
+//	Function for saving calculated result
+
+//	Function for displaying result
 
 // 	Function to validate input
 
