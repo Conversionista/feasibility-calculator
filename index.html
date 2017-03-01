@@ -63,12 +63,12 @@
 	    <strong>*</strong>
 	  </label>
 	</p>
-	<button id="auth-button" hidden>Authorize</button>
+	<button id="authButton" hidden>Authorize</button>
 	</form>
 	</section>
 
 	<section id="pagesConfiguration">
-	<h2>Pages</h2>	
+	<h2>Funnels</h2>	
 	<form id="pageConfigurationForm"> 
 	    <p>
 		    <label for="pathPage">
@@ -98,7 +98,7 @@
 	</form>
 
 		<section id="pagesToTest" class="hidden">
-		<h3>Pages to test</h3>
+		<h3>Funnels to test</h3>
 			<table id="pageConfigurationTable">
 				<tbody>
 					<tr id="tableHeaders">
@@ -113,27 +113,29 @@
 
 	<section>
 	<p>
-	  <button id="calculate">Show me where I can A/B-test!</button>
+	  <button id="calculate" disabled="dis">Show me where I can A/B-test!</button>
 	  </p>
 	</section>
 
-	<section id="result">
+	<section id="result" class="hidden">
 		<h2>Result</h2>
-			<table id="resultTable" class="hidden">
+			<table id="resultTable">
 				<tbody>
 					<tr>
 						<th></th>
 						<th colspan="3">Engagement goal</th>
-						<th colspan="3">Action goal = <span id="actionGoalParam"></span></th>
-						<th colspan="3">Conversion goal = <span id="conversionGoalParam"></span></th>
+						<th colspan="4">Action goal</th>
+						<th colspan="4">Conversion goal</th>
 						<tr>
 							<td>Regex path match</td>
 							<td>Users</td>
 							<td>Bounce rate</td>
 							<td>Minimum detectable uplift</td>
+							<td>Action goal</td>
 							<td>Users</td>
 							<td>Click through rate</td>
 							<td>Minimum detectable uplift</td>
+							<td>Conversion goal</td>
 							<td>Users</td>
 							<td>Conversion rate</td>
 							<td>Minimum detectable uplift</td>
