@@ -26,6 +26,7 @@ let configurationTable = document.getElementById("pageConfigurationTable");
 let configurationTableSection = document.getElementById("pagesToTest");
 let authBtn = document.getElementById("authButton");
 let resultTable = document.getElementById("resultTable");
+let pagesToTestSection = document.getElementById("pagesToTest");
 let resultSection = document.getElementById("result");
 
 //	Event listeners
@@ -44,7 +45,7 @@ function addButton(evt){
 	
 	//	timeout function to delay possibility for user to calculate result on data before it has been fetched from the API
 	window.setTimeout(function(){
-		appendConfTableRow();
+		appendConfTableRow(pagePaths[pagePaths.length - 1]);
 		toggleDisableButton("calculate", false);		
 	}, 2000);
 }
@@ -52,6 +53,9 @@ function addButton(evt){
 //	function to add behavior to calculate-button
 function calculateButton(evt){
 	evt.preventDefault();
+
+	//	clear calculatedResult-array from old elements
+	calculatedResult.length = 0;
 	resultData.forEach(function(element){
 		calculateResult(element);
 	 });
@@ -67,7 +71,7 @@ function toggleDisableButton (buttonId, shouldDisable) {
 	shouldDisable === true ? button.setAttribute("disabled", "disabled") : button.removeAttribute("disabled");
 }
 
-//	Function to toggle css-class; pass in element and css-class as arguments
+//	Function to add css-class; pass in element and css-class as arguments
 function toggleCssClass(element, className){
 	let elementClasses = element.classList;
 	elementClasses.toggle(className);
@@ -84,17 +88,39 @@ function addBasicConfiguration () {
 }
 
 //	Function for appending page configuration to table by #add-button
-//	todo: ADD DELETE BUTTON FOR EACH ROW
-function appendConfTableRow() {
+function appendConfTableRow(element) {
 	let inputElements = pageConfigurationForm.elements;
 	let tr = document.createElement("tr");
+	tr.setAttribute("id", `trPagePathRow${element.rowId}`);
 	
-	// omit last element because button
-	for(let i = 0; i < inputElements.length - 1; i++){
+	for(let i = 0; i < 3; i++){
 		let td = document.createElement("td");
-		td.innerHTML = inputElements[i].value;
+		
+		switch (i) {
+			case 0:
+				td.innerHTML = element.pagePath;
+				break;
+			case 1:
+				td.innerHTML = element.actionGoal;
+				break;
+			case 2:
+				td.innerHTML = element.conversionGoal;
+				break;
+			default: 
+				td.innerHTML = "N/A";
+		}
+
 		tr.appendChild(td);
+
 	}
+
+	// append delete-btn to each row
+	let deleteBtn = document.createElement("button");
+	deleteBtn.innerHTML = "Delete";
+	deleteBtn.setAttribute("id", `${element.rowId}deletBtnRow`);
+	deleteBtn.addEventListener("click", deletePagePath);
+
+	tr.appendChild(deleteBtn);
 	configurationTable.getElementsByTagName("tbody")[0].appendChild(tr);
 
 	//	if configuration table is hidden, display it
@@ -113,10 +139,48 @@ function pushPagePath(){
 		conversionGoal : inputElements[2].value
 	};
 		//	add new object to resultData array for future storage of result
-		resultData.splice(rowId, 0, {});
+		resultData.push({rowId});
 		rowId++;
 		//	push newPagePath to pagePaths array
 		pagePaths.push(newPagePath);
+}
+
+// function to delete page path from various arrays
+function deletePagePath(evt){
+	evt.preventDefault();
+	let rowId = (parseInt(this.id));
+	
+	// 	delete table row
+	let tableRow = document.getElementById(`trPagePathRow${rowId}`);
+	tableRow.parentElement.removeChild(tableRow);
+	
+	//	delete row in pagePaths
+	let pagePathsIndex = findObjectInArray(pagePaths, "rowId", rowId);
+	pagePaths.splice(pagePathsIndex, 1);
+
+	//	delete row in requestStrings
+	let requestStringsIndex = findObjectInArray(requestStrings, "rowId", rowId);
+	requestStrings.splice(requestStringsIndex, 1);
+
+	//	delete row in resultData
+	let resultDataIndex = findObjectInArray(resultData, "rowId", rowId);
+	resultData.splice(resultDataIndex, 1);
+
+	//	if all page paths are deleted, hide section...
+	if(pagePaths.length === 0){
+		toggleCssClass( pagesToTestSection, "hidden");
+	}
+}
+
+// function for finding corresponding object in array
+function findObjectInArray(array, property, value){
+	let objIndex; 
+	array.findIndex(function(element, index){
+		if(element[property] === value){
+			objIndex = index;
+		}
+	});
+	return objIndex;
 }
 
 // Initializes the gapi.client object, which app uses to make API requests.
@@ -191,8 +255,9 @@ function queryCoreReportingApi(element) {
 
 //	Function for saving relevant data for calculation from API-response
 function saveResult(result, rowId, type, pagePath, actionGoal, conversionGoal){
-	let resultObject = resultData[rowId];
-	Object.assign(resultObject, {rowId});
+	let index = findObjectInArray(resultData, "rowId", rowId);
+	let resultObject = resultData[index];
+	//Object.assign(resultObject, {rowId});
 
 	if(type === "engagementGoal"){
 		let engagementGoalUsers = result.totalsForAllResults["ga:users"];
@@ -227,11 +292,9 @@ function calculateResult(element){
 	let CR;
 	let conversionGoalMDU;
 	
-	//	add new object to calculatedResult array for future storage of result if no object on rowId-position is available
-	if (!calculatedResult[rowId]){
-		calculatedResult.splice(rowId, 0, {});
-	}
-	
+	//	add new object to calculatedResult array for future storage of result
+	calculatedResult.push({rowId});
+
 	if (engagementGoalUsers !== 0){
 		engagementGoalMDU = engagementGoalMinDetectUplift(noOfVariations, engagementRateShare, engagementGoalUsers, samplePeriod, maxExperimentLength);	
 	} else {
@@ -294,7 +357,8 @@ function conversionGoalMinDetectUplift(noOfVariations, conversionRate, engagemen
 }
 
 function saveCalculatedResult(pagePath, actionGoal, conversionGoal, rowId, calculatedValues){
-	let resultObject = calculatedResult[rowId];
+	let index = findObjectInArray(calculatedResult, "rowId", rowId);
+	let resultObject = calculatedResult[index];
 	let bounceRate = calculatedValues.bounceRate;
 	let engagementGoalUsers = calculatedValues.engagementGoalUsers;
 	let engagementGoalMDU = calculatedValues.engagementGoalMDU;
@@ -323,16 +387,32 @@ function saveCalculatedResult(pagePath, actionGoal, conversionGoal, rowId, calcu
 }
 
 function displayResult(){
-	calculatedResult.forEach(appendResultTableRow);
-	resultSection.classList.remove("hidden");
-}
+//	hide section while table is constructed
+toggleCssClass(resultSection, "hidden");
 
+//	clear table of old results
+	let tableRows = resultTable.getElementsByTagName("tr");
+	let length = tableRows.length;
+
+	//	2 first elements should always remain
+	if(length > 2){
+		for(let i = length - 1 ; i > 1; i--){
+		resultTable.getElementsByTagName("tbody")[0].removeChild(tableRows[i]);
+		}
+	}
+	
+	//	only calculate values and display table if there is any results to make calculations on...
+	if(calculatedResult.length > 0){
+		calculatedResult.forEach(appendResultTableRow);
+		resultSection.classList.remove("hidden");
+	}
+}
 
 function appendResultTableRow(element){
 	let tr = document.createElement("tr");
-	tr.setAttribute("id", `tr${element.rowId}`);
+	tr.setAttribute("id", `trResultRow${element.rowId}`);
 
-	if (!document.getElementById(`tr${element.rowId}`)) {
+	if (!document.getElementById(`trResultRow${element.rowId}`)) {
 		for(let i = 0; i < 12; i++){
 		var td = document.createElement("td");
 		td.setAttribute("id", `td${i}`);
@@ -381,22 +461,14 @@ function appendResultTableRow(element){
 		}
 
 		tr.appendChild(td);
-		resultTable.appendChild(tr);
+		resultTable.getElementsByTagName("tbody")[0].appendChild(tr);
 		}
 	}
 }
 
-//	Function for saving calculated result
-
-//	Function for displaying result
-
 // 	Function to validate input
 
 //	Function for validating number input
-
-//	Function for deleting row in table
-
-//	Function for splicing deleted table-row-object from conf array
 
 //	Function to validate that user at least puts in one page path?
 
