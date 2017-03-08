@@ -24,12 +24,20 @@ module.exports = {
      },
     {
      test: /\.scss$/,                    
-      loaders: ["style-loader", "css-loader", "sass-loader"], 
+      loaders: ["style-loader", "css-loader", "sass-loader", "resolve-url-loader"], 
+    },
+    {
+      test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
+      loader: 'url-loader'
     },
    { 
      test: /.(jpe?g|png)$/,                       
      loader: 'file?name=img/[name].[hash].[ext]' //emits image files as file in the img folder in dist folder, filename MD5 hash, and returns the public url used in bundle.js 
-   }
+   },
+   { 
+    test: require.resolve("jquery"), 
+    loader: "expose-loader?$!expose-loader?jQuery" 
+    }
    ]
  },
   plugins: [
@@ -42,6 +50,10 @@ module.exports = {
                 comments: false,
             },
         }),
+        new webpack.ProvidePlugin({
+           $: "jquery",
+           jQuery: "jquery"
+       })
     ],
 
  resolve: {

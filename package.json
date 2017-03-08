@@ -15,13 +15,20 @@
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-react": "^6.22.0",
     "css-loader": "^0.26.1",
+    "expose-loader": "^0.7.3",
     "jshint": "^2.9.4",
     "jshint-loader": "^0.8.3",
     "node-libs-browser": "^2.0.0",
     "node-sass": "^4.5.0",
+    "resolve-url-loader": "^2.0.2",
     "sass-loader": "^4.1.1",
     "style-loader": "^0.13.1",
+    "url-loader": "^0.5.8",
     "webpack": "^2.2.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bootstrap-loader": "^2.0.0-beta.22",
+    "bootstrap-sass": "^3.3.7",
+    "jquery": "^3.1.1"
+  }
 }

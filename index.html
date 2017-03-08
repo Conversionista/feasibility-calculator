@@ -6,144 +6,153 @@
 	</head>
 <body>
 	<h1>Experiment feasibility calculator</h1>
-	<p>Required fields are followed by <strong>*</strong>.</p>
 
-	<section id="configuration">
-	<h2>Configuration</h2>
-
-	<form id="basicConfigurationForm">
-	  <label for="samplingLevel">
-	    <span>Sampling level:</span>
-	    <select id="samplingLevel" name="samplingLevel">
-	      <option value="DEFAULT">Default</option>
-	      <option value="FASTER">Faster</option>
-	      <option value="HIGHER_PRECISION" selected>Higher precision</option>
-	    </select>
-	  </label>
-
+	<section id="authorize">
 	<p>
-	  <label for="samplePeriod">
-	    <span>Sample period (weeks): </span>
-	    <input type="number" id="samplePeriod" name="samplePeriod" required />
-	    <strong>*</strong>
-	  </label>
-	</p>
-
-	<p>
-	  <label for="experimentLength">
-	    <span>Maximum experiment length (weeks): </span>
-	    <input type="number" id="experimentLength" name="experimentLength" required />
-	    <strong>*</strong>
-	  </label>
-	</p>
-
-	<p>
-	<label for="variations">
-		<span>Number of variations: </span>
-	    <input type="number" id="variations" name="variations" required />
-	    <strong>*</strong>
-	  </label>
-	</p>
-
-	<!-- If user should set sample period by date - default should be today - requires validation of input for Safari & Firefox -->
-	<!--
-	<p>
-		<label for="endDate">
-			<span>Sampling period end date: </span>
-	    	<input type="date" id="endDate" name="endDate" placeholder="yyyy-mm-dd" required/>
-	    	<strong>*</strong>
-	 	</label>
-	</p>
-	-->
-
-	<p>
-	<label for="gaViewId">
+		<label for="gaViewId">
 		<span>Google analytics view ID: </span>
-	    <input type="number" id="gaViewId" name="gaViewId" required />
+	    <input type="number" id="gaViewId" name="gaViewId" min="0" step="1" required placeholder="123456789" />
 	    <strong>*</strong>
-	  </label>
+	  	</label>
+	  	<span id="gaViewIdMsg"></span>
+	  	<button id="authButton" disabled>Authorize</button>
+		<button id="logout" hidden>Change GA view ID</button>
 	</p>
-	<button id="authButton" hidden>Authorize</button>
-	</form>
+	</section>
+	
+	<section id="pagesToTest" class="hidden">
+	<h2>Funnels to test</h2>
+		<table id="pageConfigurationTable">
+			<tbody>
+				<tr id="tableHeaders">
+					<th>Page path</th>
+					<th>Action goal</th>
+					<th>Conversion goal</th>
+					<th></th>
+				</tr>
+			</tbody>
+		</table>
+	</section>
+	<section id="buttons" class="hidden">
+		<p>
+		  <button id="calculate" disabled="">Show me where I can A/B-test!</button>
+		  <button id="customize" disabled="">I want to customize my funnels!</button>
+		</p>
 	</section>
 
-	<section id="pagesConfiguration">
+	<section id="pagesConfiguration" class="hidden">
 	<h2>Funnels</h2>	
 	<form id="pageConfigurationForm"> 
 	    <p>
-		    <label for="pathPage">
+		    <label for="pagePath">
 		    	<span><strong>Page path:</strong></span>
-		        <input type="text" id="pathPage" name="pathPage" placeholder="~\/category\/" />
+		        <input type="text" id="pagePath" name="pagePath" value="~.*" />
 		    </label>
+		    <span id="pagePathMsg"></span>
 		</p>
 	    <p>
 
 	    <p>
 	    	<label for="actionGoal">
 	    		<span><strong>Action goal:</strong></span>
-	        	<input type="text" id="actionGoal" name="actionGoal" placeholder="ga:eventLabel=@AddToCart" />
+	        	<input type="text" id="actionGoal" name="actionGoal" value="ga:shoppingStage=@ADD_TO_CART" />
 	      	</label>
+	      	<span id="actionGoalMsg"></span>
 	    </p>
 	    <p>
 
 	    <p>
 	    <label for="conversionGoal">
-	    	<span><strong>Conversion goal:</span></span>
-	        <input type="text" id="conversionGoal" name="conversionGoal" placeholder="ga:transactions>0" />
+	    	<span><strong>Conversion goal:</strong></span>
+	        <input type="text" id="conversionGoal" name="conversionGoal" value="ga:transactions>0" />
 	    </label>
+	    <span id="conversionGoalMsg"></span>
 	    </p>
 	    <p>
 
-	    <button id="add">Add</button>
+	    <button id="add" disabled="disabled">Add</button>
 	</form>
-
-		<section id="pagesToTest" class="hidden">
-		<h3>Funnels to test</h3>
-			<table id="pageConfigurationTable">
-				<tbody>
-					<tr id="tableHeaders">
-						<th>Page path</th>
-						<th>Action goal</th>
-						<th>Conversion goal</th>
-						<th></th>
-					</tr>
-				</tbody>
-			</table>
-		</section>
-	</section>
-
-	<section>
-	<p>
-	  <button id="calculate" disabled="dis">Show me where I can A/B-test!</button>
-	  </p>
 	</section>
 
 	<section id="result" class="hidden">
 		<h2>Result</h2>
-			<table id="resultTable">
-				<tbody>
-					<tr>
-						<th></th>
-						<th colspan="3">Engagement goal</th>
-						<th colspan="4">Action goal</th>
-						<th colspan="4">Conversion goal</th>
-						<tr>
-							<td>Regex path match</td>
-							<td>Users</td>
-							<td>Bounce rate</td>
-							<td>Minimum detectable uplift</td>
-							<td>Action goal</td>
-							<td>Users</td>
-							<td>Click through rate</td>
-							<td>Minimum detectable uplift</td>
-							<td>Conversion goal</td>
-							<td>Users</td>
-							<td>Conversion rate</td>
-							<td>Minimum detectable uplift</td>
-						</tr>
-					</tr>
-				</tbody>
-			</table>
+		<button id="configure">Configure test parameters</button>
+		<section id="configuration" class="hidden">
+			<h3>Configuration</h3>
+			<form id="basicConfigurationForm">
+			  <label for="samplingLevel">
+			    <span>Sampling level:</span>
+			    <select id="samplingLevel" name="samplingLevel">
+			      <option value="DEFAULT">Default</option>
+			      <option value="FASTER">Faster</option>
+			      <option value="HIGHER_PRECISION" selected>Higher precision</option>
+			    </select>
+			  </label>
+
+			<p>
+			  <label for="samplePeriod">
+			    <span>Sample period (weeks): </span>
+			    <input type="number" id="samplePeriod" name="samplePeriod"  value="4" min="4" max="12" step="1" required />
+			    <strong>*</strong>
+			  </label>
+			  <span id="samplePeriodMsg"></span>
+			</p>
+
+			<p>
+			  <label for="experimentLength">
+			    <span>Maximum experiment length (weeks): </span>
+			    <input type="number" id="experimentLength" name="experimentLength"  value="2" min="2" max="100" step="1"  required />
+			    <strong>*</strong>
+			  </label>
+			  <span id="experimentLengthMsg"></span>
+			</p>
+
+			<p>
+			<label for="variations">
+				<span>Number of variations: </span>
+			    <input type="number" id="variations" name="variations"  value="2" min="2" max="100" step="1" required />
+			    <strong>*</strong>
+			  </label>
+			  <span id="variationsMsg"></span>
+			</p>
+
+			<!-- If user should set sample period by date - default should be today - requires validation of input for Safari & Firefox -->
+			<!--
+			<p>
+				<label for="endDate">
+					<span>Sampling period end date: </span>
+			    	<input type="date" id="endDate" name="endDate" placeholder="yyyy-mm-dd" required/>
+			    	<strong>*</strong>
+			 	</label>
+			</p>
+			-->
+			</form>
+		</section>
+
+		<table id="resultTable">
+			<tbody>
+				<tr>
+					<th></th>
+					<th colspan="3">Engagement goal</th>
+					<th colspan="4">Action goal</th>
+					<th colspan="4">Conversion goal</th>
+				</tr>
+				<tr>
+					<td>Regex path match</td>
+					<td>Users</td>
+					<td>Bounce rate</td>
+					<td>Minimum detectable uplift</td>
+					<td>Action goal</td>
+					<td>Users</td>
+					<td>Click through rate</td>
+					<td>Minimum detectable uplift</td>
+					<td>Conversion goal</td>
+					<td>Users</td>
+					<td>Conversion rate</td>
+					<td>Minimum detectable uplift</td>
+				</tr>
+			</tbody>
+		</table>
 	</section>
 	<script src="https://apis.google.com/js/client.js?onload=authorize"></script>
 	<script src="./dist/bundle.js"></script>

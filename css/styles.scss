@@ -1,3 +1,6 @@
+$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+@import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
+
 section#configuration, section#pagesConfiguration {
 	border: 1px solid black;
 }
@@ -17,9 +20,9 @@ th, tr, td {
 }
 
 .correctInput {
-	
+	background-color: green;
 }
 
 .incorrectInput {
-	
+	outline-color: red;
 }
