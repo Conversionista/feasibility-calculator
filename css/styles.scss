@@ -1,28 +1,108 @@
 $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 @import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
 
-section#configuration, section#pagesConfiguration {
-	border: 1px solid black;
+// ELEMENTS 
+
+body {
+	font-family: 'Lato', sans-serif;
 }
 
-table {
-	width: 100%;
-	border-spacing: 0;
-	border-collapse: collapse;
+h2 {
+	font-size: 26px;
 }
 
-th, tr, td {
-	border: 1px solid black;
+section {
+	padding: 0 15px;
+}
+
+th:last-child {
+		border-bottom: 1px solid #ddd;
+}
+
+#authorize .row:first-child {
+	height: 39px;
+
+	h4 {
+		margin: 0;
+	}
+}
+
+// CLASSES
+
+.bold {
+	font-weight: 700;
+}
+.container {
+	width: 90%;
 }
 
 .hidden {
 	display: none;
 }
 
-.correctInput {
-	background-color: green;
+.row {
+	padding: 10px 0;
 }
 
-.incorrectInput {
-	outline-color: red;
+.yes, .no, .maybe {
+	font-size: 1.5em;
+	margin: 0 auto;
+}
+
+// ID's
+
+#configuration .row:first-child	{
+	padding: 0;
+}
+
+#authorize, #pagesToTest, #pagesConfiguration {
+	border-bottom: 1px solid #eee;
+}
+
+#pagesConfiguration, #configuration {
+	border-top: 1px solid #eee;
+}
+
+#resultTable {
+	td {
+		&:first-child, &:nth-child(3n+5){
+			max-width: 10%;
+			word-break: break-all;
+		}
+	}
+}
+
+input#gaViewId {
+	margin: 0 5px;
+}
+
+#result {
+	border-top: 1px solid #eee;
+
+	table {
+		font-size: 12px;
+	}
+ 	
+ 	td:nth-child(3n+2) {
+		border-left: 1px solid #ddd;
+	}
+
+	h2 {
+		margin: 0;
+	}
+
+	th {
+		font-size: 14px;
+	}
+}
+
+#configure {
+	display: inline;
+}
+
+#testSetup {
+	span {
+		font-size: 1.5em;
+		padding: 0 15px;
+	}
 }

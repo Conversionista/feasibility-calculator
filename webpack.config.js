@@ -24,7 +24,7 @@ module.exports = {
      },
     {
      test: /\.scss$/,                    
-      loaders: ["style-loader", "css-loader", "sass-loader", "resolve-url-loader"], 
+      loaders: ["style-loader", "css-loader", "sass-loader"], 
     },
     {
       test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,

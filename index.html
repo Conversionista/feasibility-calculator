@@ -3,158 +3,188 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Experiment feasibility calculator</title>
+		<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
 	</head>
 <body>
-	<h1>Experiment feasibility calculator</h1>
+<div class="container">
+	<div class="row">
+		<h1 class="col-xs-12 text-center text-uppercase">Experiment feasibility calculator</h1>
+	</div>
 
 	<section id="authorize">
-	<p>
-		<label for="gaViewId">
-		<span>Google analytics view ID: </span>
-	    <input type="number" id="gaViewId" name="gaViewId" min="0" step="1" required placeholder="123456789" />
-	    <strong>*</strong>
-	  	</label>
-	  	<span id="gaViewIdMsg"></span>
-	  	<button id="authButton" disabled>Authorize</button>
-		<button id="logout" hidden>Change GA view ID</button>
-	</p>
+	<div class="row">
+		<h4 id="accountInfo" class="text-center"></h4>
+	</div>
+
+	<div class="row">
+		<form class="form-inline col-sm-8 col-sm-offset-3 col-xs-12">
+			<label for="gaViewId">Google analytics view ID:</label>
+		    <input type="number" id="gaViewId" name="gaViewId" min="0" step="1" required placeholder="123456789" class="form-control"/>
+		  	<button id="authButton" class="btn btn-info" disabled>Authorize</button>
+			<button id="logout" class="btn btn-info hidden">Change GA view ID</button>
+		</form>
+	</div>
+
+	<div class="row">
+		<span id="gaViewIdMsg" class="col-sm-12 text-center"></span>
+	</div>
+	
 	</section>
 	
-	<section id="pagesToTest" class="hidden">
-	<h2>Funnels to test</h2>
-		<table id="pageConfigurationTable">
-			<tbody>
-				<tr id="tableHeaders">
-					<th>Page path</th>
-					<th>Action goal</th>
-					<th>Conversion goal</th>
-					<th></th>
-				</tr>
-			</tbody>
-		</table>
-	</section>
 	<section id="buttons" class="hidden">
-		<p>
-		  <button id="calculate" disabled="">Show me where I can A/B-test!</button>
-		  <button id="customize" disabled="">I want to customize my funnels!</button>
-		</p>
+		<div class="row">
+		  <button id="calculate" class="btn btn-success btn-lg col-sm-6 col-sm-offset-3" disabled="">Show me where I can A/B-test!</button>
+		</div>
+		<div class="row">  
+		  <button id="customize" class="btn btn-default btn-sm col-sm-4 col-sm-offset-4" disabled="" data-toggle="collapse" data-target="#pagesConfiguration">I want to customize my funnels!</button>
+		</div>
 	</section>
 
-	<section id="pagesConfiguration" class="hidden">
-	<h2>Funnels</h2>	
-	<form id="pageConfigurationForm"> 
-	    <p>
-		    <label for="pagePath">
-		    	<span><strong>Page path:</strong></span>
-		        <input type="text" id="pagePath" name="pagePath" value="~.*" />
-		    </label>
-		    <span id="pagePathMsg"></span>
-		</p>
-	    <p>
+	<section id="pagesConfiguration" class="collapse">
+	<div id="pagesToTest" class="hidden">
+	<div class="row">
+		<h2 class="text-center text-uppercase">Funnels to test</h2>
+	</div>
 
-	    <p>
-	    	<label for="actionGoal">
-	    		<span><strong>Action goal:</strong></span>
-	        	<input type="text" id="actionGoal" name="actionGoal" value="ga:shoppingStage=@ADD_TO_CART" />
-	      	</label>
-	      	<span id="actionGoalMsg"></span>
-	    </p>
-	    <p>
+	<div class="row">
+	<table id="pageConfigurationTable" class="table table-striped">
+		<tbody>
+			<tr id="tableHeaders">
+				<th>Page path</th>
+				<th>Action goal</th>
+				<th>Conversion goal</th>
+				<th></th>
+			</tr>
+		</tbody>
+	</table>
+	</div>
+	</div>
 
-	    <p>
-	    <label for="conversionGoal">
-	    	<span><strong>Conversion goal:</strong></span>
-	        <input type="text" id="conversionGoal" name="conversionGoal" value="ga:transactions>0" />
-	    </label>
-	    <span id="conversionGoalMsg"></span>
-	    </p>
-	    <p>
+	<div class="row">
+	<form id="pageConfigurationForm" class="form-horizontal col-xs-12">
+	    <div class="form-group">
+		    <label for="pagePath" class="col-sm-3 col-sm-offset-1 control-label">Page path:</label>
+		    <div class="col-sm-5">
+		    	<input type="text" id="pagePath" name="pagePath" value="~.*" class="form-control" />
+		    </div>
+		    <span id="pagePathMsg" class="col-sm-3"></span>
+		</div>
+		    
+	    <div class="form-group">
+	    	<label for="actionGoal" class="col-sm-3 col-sm-offset-1 control-label">Action goal:</label>
+		    <div class="col-sm-5">
+	        	<input type="text" id="actionGoal" name="actionGoal" value="ga:shoppingStage=@ADD_TO_CART" 
+	        	class="form-control" />
+	      	</div>
+	      	<span id="actionGoalMsg" class="col-sm-3"></span>
+	    </div>
 
-	    <button id="add" disabled="disabled">Add</button>
-	</form>
+	    <div class="form-group">
+		    <label for="conversionGoal" class="col-sm-3 col-sm-offset-1 control-label">Conversion goal:</label>
+			<div class="col-sm-5">    
+		        <input type="text" id="conversionGoal" name="conversionGoal" value="ga:transactions>0" class="form-control" />
+		    </div>
+		    <span id="conversionGoalMsg" class="col-sm-3"></span>
+	    </div>
+
+	    <div class="row">
+	    	<p id="funnelMsg" class="text-center"></p>
+	    </div>
+
+	    <div class="form-group">
+	      		<button id="add" class="btn btn-info col-sm-2 col-sm-offset-5" disabled="disabled">Add funnel</button>
+	 	</div>
+	   </form>
+	   </div>
 	</section>
 
 	<section id="result" class="hidden">
-		<h2>Result</h2>
-		<button id="configure">Configure test parameters</button>
-		<section id="configuration" class="hidden">
-			<h3>Configuration</h3>
-			<form id="basicConfigurationForm">
-			  <label for="samplingLevel">
-			    <span>Sampling level:</span>
-			    <select id="samplingLevel" name="samplingLevel">
-			      <option value="DEFAULT">Default</option>
-			      <option value="FASTER">Faster</option>
-			      <option value="HIGHER_PRECISION" selected>Higher precision</option>
-			    </select>
-			  </label>
+		<div class="row">
+			<h2 class="text-center text-uppercase">Result</h2>
+		</div>
 
-			<p>
-			  <label for="samplePeriod">
-			    <span>Sample period (weeks): </span>
-			    <input type="number" id="samplePeriod" name="samplePeriod"  value="4" min="4" max="12" step="1" required />
-			    <strong>*</strong>
-			  </label>
-			  <span id="samplePeriodMsg"></span>
-			</p>
+		<div class="row">
+			<p id="testSetup" class="text-center bold">Experiment length: <span id="expLength"></span> No of variations: <span id="noVariations"></span></p>
+		</div>
 
-			<p>
-			  <label for="experimentLength">
-			    <span>Maximum experiment length (weeks): </span>
-			    <input type="number" id="experimentLength" name="experimentLength"  value="2" min="2" max="100" step="1"  required />
-			    <strong>*</strong>
-			  </label>
-			  <span id="experimentLengthMsg"></span>
-			</p>
-
-			<p>
-			<label for="variations">
-				<span>Number of variations: </span>
-			    <input type="number" id="variations" name="variations"  value="2" min="2" max="100" step="1" required />
-			    <strong>*</strong>
-			  </label>
-			  <span id="variationsMsg"></span>
-			</p>
-
-			<!-- If user should set sample period by date - default should be today - requires validation of input for Safari & Firefox -->
-			<!--
-			<p>
-				<label for="endDate">
-					<span>Sampling period end date: </span>
-			    	<input type="date" id="endDate" name="endDate" placeholder="yyyy-mm-dd" required/>
-			    	<strong>*</strong>
-			 	</label>
-			</p>
-			-->
-			</form>
-		</section>
-
-		<table id="resultTable">
+		<div class="row">
+		<table id="resultTable" class="table table-striped table-bordered">
 			<tbody>
 				<tr>
 					<th></th>
 					<th colspan="3">Engagement goal</th>
-					<th colspan="4">Action goal</th>
-					<th colspan="4">Conversion goal</th>
+					<th colspan="3">Action goal</th>
+					<th colspan="3">Conversion goal</th>
 				</tr>
-				<tr>
-					<td>Regex path match</td>
+				<tr class="bold">
+					<td>Page path</td>
 					<td>Users</td>
 					<td>Bounce rate</td>
-					<td>Minimum detectable uplift</td>
+					<td>Possible to A/B-test?</td>
 					<td>Action goal</td>
-					<td>Users</td>
+					<!--<td>Users</td>-->
 					<td>Click through rate</td>
-					<td>Minimum detectable uplift</td>
+					<td>Possible to A/B-test?</td>
 					<td>Conversion goal</td>
-					<td>Users</td>
+					<!--<td>Users</td>-->
 					<td>Conversion rate</td>
-					<td>Minimum detectable uplift</td>
+					<td>Possible to A/B-test?</td>
 				</tr>
 			</tbody>
 		</table>
+		</div>
+
+		<div class="row">
+			<p class="text-center">Not the test result you were hoping for? Why not try and <button id="configure" class="btn btn-default btn-xs" data-toggle="collapse" data-target="#configuration">Configure test parameters</button> and see if a different test setup makes it possible to run the A/B tests you want!</p>
+		</div>
+
+		<div class="row">	
+		<div id="configuration" class="collapse">
+			<form id="basicConfigurationForm" class="form">
+
+			<div class="row">
+				<label for="samplingLevel" class="col-sm-3 control-label">Sampling level: </label>
+				<label for="samplePeriod" class="col-sm-3 control-label">Sample period (weeks): </label>
+				<label for="experimentLength" class="col-sm-3 control-label">Maximum experiment length (weeks): </label>
+				<label for="variations" class="col-sm-3 control-label">Number of variations: </label>
+			</div>
+
+			<div class="row">
+				<div class="form-group">
+					<div class="col-sm-3">
+						<select id="samplingLevel" name="samplingLevel" class="form-control">
+						<option value="DEFAULT">Default</option>
+						<option value="FASTER">Faster</option>
+						<option value="HIGHER_PRECISION" selected>Higher precision</option>
+						</select>
+					</div>
+
+					<div class="col-sm-3">
+						<input type="number" id="samplePeriod" name="samplePeriod"  value="4" min="4" max="12" step="1" required class="form-control"/>
+					</div>
+
+					<div class="col-sm-3">
+						<input type="number" id="experimentLength" name="experimentLength"  value="2" min="2" max="100" step="1" required class="	form-control"/>
+					</div>
+					<div class="col-sm-3">
+						<input type="number" id="variations" name="variations"  value="2" min="2" max="100" step="1" required class="form-control"/>
+					</div>
+					</div>
+			</div>
+			
+			</form>
+			<div class="row">
+				<span id="samplePeriodMsg" class="col-sm-3 col-sm-offset-3"></span>
+				<span id="experimentLengthMsg" class="col-sm-3"></span>
+				<span id="variationsMsg" class="col-sm-3"></span>
+			</div>
+		</div>
+		</div>
+
 	</section>
+	</div>
+
 	<script src="https://apis.google.com/js/client.js?onload=authorize"></script>
 	<script src="./dist/bundle.js"></script>
-	</body>
+</body>
 </html>

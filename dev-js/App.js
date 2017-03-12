@@ -4,84 +4,167 @@ require ('bootstrap-sass');
 require('./../css/styles.scss');
 import $ from "jquery";
 
-// global variables
+// GLOBAL VARIABLES
 let basicConfiguration = {};
-let pagePaths = [];
-let requestStrings = [];
+
+//	to keep track of if the added funnel is the default one or not
+let calculatedOnce = false;
+let calculatedResult = [];
+
 let errors = false;
+
 //	Google Auth object
 let GoogleAuth;
-//	Retrieve the discovery document for version 3 of Google Analytics core reporting API.
-let discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/analytics/v3/rest';
 let resultData = [];
-let calculatedResult = [];
-let rowId = 0;	//	init, for keeping track of funnels added by user
+let pagePaths = [];
+let requestStrings = [];
+
+//	init, for keeping track of funnels added by user
+let rowId = 0;	
+
+//	Retrieve the discovery document for version 3 of Google Analytics core reporting API.
+const DISCOVERY_URL = 'https://www.googleapis.com/discovery/v1/apis/analytics/v3/rest';
+
 //	Access scope for API calls; read only
 const SCOPE = ['https://www.googleapis.com/auth/analytics.readonly'];
 //	client ID for app
 const CLIENT_ID = '540679893971-kjh5477188leiq81h80vuq3s415n0ren.apps.googleusercontent.com';
 
-//	DOM nodes
+//	DOM NODES
+let accountParagraph = document.getElementById("accountInfo");
 let addTableRowBtn = document.getElementById("add");
-let calculateBtn = document.getElementById("calculate");
-let pageConfigurationSection = document.getElementById("pagesConfiguration");
-let pageConfigurationForm = document.getElementById("pageConfigurationForm");
-let basicConfigurationSection = document.getElementById("configuration");
-let basicConfigurationForm = document.getElementById("basicConfigurationForm");
-let configurationTable = document.getElementById("pageConfigurationTable");
-let configurationTableSection = document.getElementById("pagesToTest");
 let authBtn = document.getElementById("authButton");
-let logoutBtn = document.getElementById("logout");
-let customizeBtn = document.getElementById("customize");
-let configurationBtn = document.getElementById("configure");
-
-let resultTable = document.getElementById("resultTable");
-let pagesToTestSection = document.getElementById("pagesToTest");
-let resultSection = document.getElementById("result");
 let buttonSection = document.getElementById("buttons");
 
+let basicConfigurationSection = document.getElementById("configuration");
+let basicConfigurationForm = document.getElementById("basicConfigurationForm");
+let calculateBtn = document.getElementById("calculate");
+
+let expLengthSpan = document.getElementById("expLength");
+
+let configurationBtn = document.getElementById("configure");
+let configurationTable = document.getElementById("pageConfigurationTable");
+let configurationTableSection = document.getElementById("pagesToTest");
+let customizeBtn = document.getElementById("customize");
+
+let logoutBtn = document.getElementById("logout");
+
+let pageConfigurationSection = document.getElementById("pagesConfiguration");
+let pageConfigurationForm = document.getElementById("pageConfigurationForm");
+let pagesToTestSection = document.getElementById("pagesToTest");
+
+let resultTable = document.getElementById("resultTable");
+let resultSection = document.getElementById("result");
+
+let variationsSpan = document.getElementById("noVariations");
+
 // input elements
-let samplePeriodInput = document.getElementById("samplePeriod");
-let experimentLengthInput = document.getElementById("experimentLength");
-let variationsInput = document.getElementById("variations");
-let gaViewIdInput = document.getElementById("gaViewId");
-let pagePathInput = document.getElementById("pagePath");
 let actionGoalInput = document.getElementById("actionGoal");
 let conversionGoalInput = document.getElementById("conversionGoal");
+let experimentLengthInput = document.getElementById("experimentLength");
+let gaViewIdInput = document.getElementById("gaViewId");
+let pagePathInput = document.getElementById("pagePath");
+let samplingLevelInput = document.getElementById("samplingLevel");
+let samplePeriodInput = document.getElementById("samplePeriod");
+let variationsInput = document.getElementById("variations");
 
 //	input element msg spans
-let samplePeriodMsg = document.getElementById("samplePeriodMsg");
-let experimentLengthMsg = document.getElementById("experimentLengthMsg");
-let variationsMsg = document.getElementById("variationsMsg");
-let gaViewIdMsg = document.getElementById("gaViewIdMsg");
-let pagePathMsg = document.getElementById("pagePathMsg");
 let actionGoalMsg = document.getElementById("actionGoalMsg");
 let conversionGoalMsg = document.getElementById("conversionGoalMsg");
+let experimentLengthMsg = document.getElementById("experimentLengthMsg");
+let funnelMsg = document.getElementById("funnelMsg");
+let gaViewIdMsg = document.getElementById("gaViewIdMsg");
+let pagePathMsg = document.getElementById("pagePathMsg");
+let samplePeriodMsg = document.getElementById("samplePeriodMsg");
+let variationsMsg = document.getElementById("variationsMsg");
 
-//	Event listeners buttons
+//	EVENT LISTENERS BUTTONS
 addTableRowBtn.addEventListener("click", addButton);
-calculateBtn.addEventListener("click", calculateButton);
 authBtn.addEventListener("click", authorize);
+calculateBtn.addEventListener("click", calculateButton);
 customizeBtn.addEventListener("click", customizeButton);
+
 //	Temporary fix for "logout"-functionality so the user can change GA view ID
 logoutBtn.addEventListener("click", function(){
 	window.location.reload(true);
 });
-configurationBtn.addEventListener("click", function(){
-	toggleCssClass(basicConfigurationSection, "hidden");
-});
+
+// FUNCTIONS for toggling CSS-classes, disable buttons, finding objects in array, validate input
+
+// Function to enable/disable button
+function toggleDisableButton (buttonId, shouldDisable) {
+	// fetch button via DOM
+	let button = document.getElementById(buttonId);
+	
+	// toggle disabled property
+	if(shouldDisable){
+		button.setAttribute("disabled", "disabled");
+	} else {
+		button.removeAttribute("disabled");
+	}
+}
+
+//	Function to add css-class; pass in element and css-class as arguments
+function addCssClass(element, className){
+	let elementClasses = element.classList;
+	elementClasses.add(className);
+}
+
+//	Function to remove css-class; pass in element and css-class as arguments
+function removeCssClass(element, className){
+	let elementClasses = element.classList;
+	elementClasses.remove(className);
+}
+
+//	Function to toggle css-class; pass in element and css-class as arguments
+function toggleCssClass(element, className){
+	let elementClasses = element.classList;
+	elementClasses.toggle(className);
+}
+
+// function for finding corresponding object in array
+function findObjectInArray(array, property, value){
+	let objIndex; 
+	array.findIndex(function(element, index){
+		if(element[property] === value){
+			objIndex = index;
+		}
+	});
+	return objIndex;
+}
+
+// 	Function to validaten that input is not empty
+function validateNoEmptyInput(inputElement){
+	let pass;
+	if(inputElement.value){
+		pass = true;
+	} else {
+		pass = false;
+		}
+	return pass; 
+}
+
+//	Function for validating number input with min and max range
+function validateMinMax(inputElement, min, max){
+	let pass;
+	if(inputElement.value >= min && inputElement.value <= max){
+		pass = true;
+	} else {
+		pass = false;
+		}
+	return pass;
+}
+
+// EVENT LISTENERS INPUT FIELDS
 
 //	GA view id input event listener
 gaViewIdInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(gaViewIdInput);
 	if(inputExists){
-		removeCssClass(gaViewIdInput, "incorrectInput");
 		toggleDisableButton("authButton", false);
 		toggleDisableButton("add", false);
-		gaViewIdMsg.innerHTML = "Success";
 	} else {
 		gaViewIdMsg.innerHTML = "Please enter your Google Analytics View ID. You find it in Google Analytics --> Admin --> View --> View Settings --> View ID";
-		addCssClass(gaViewIdInput, "incorrectInput");
 		toggleDisableButton("add", true);
 		}
 });
@@ -90,10 +173,10 @@ gaViewIdInput.addEventListener("input", function(){
 pagePathInput.addEventListener("change", function(){
 	let inputExists = validateNoEmptyInput(pagePathInput);
 	if(inputExists){
+		pagePathMsg.innerHTML = "";
 		toggleDisableButton("add", false);
-		pagePathMsg.innerHTML = "Success";
 		} else {
-		pagePathMsg.innerHTML = "Please enter a page path in Regex";
+		pagePathMsg.innerHTML = "Please enter a page path in Regex.";
 		toggleDisableButton("add", true);
 	}
 });
@@ -101,10 +184,10 @@ pagePathInput.addEventListener("change", function(){
 actionGoalInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(actionGoalInput);
 	if(inputExists){
+		actionGoalMsg.innerHTML = "";
 		toggleDisableButton("add", false);
-		actionGoalMsg.innerHTML = "Success";
 	} else {
-		actionGoalMsg.innerHTML = "Please enter an action goal in Regex";
+		actionGoalMsg.innerHTML = "Please enter an action corresponding to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>";
 		toggleDisableButton("add", true);
 	}
 });
@@ -112,10 +195,10 @@ actionGoalInput.addEventListener("input", function(){
 conversionGoalInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(conversionGoalInput);
 	if(inputExists){
-		conversionGoalMsg.innerHTML = "Success";
+		conversionGoalMsg.innerHTML = "";
 		toggleDisableButton("add", false);
 		} else {
-		conversionGoalMsg.innerHTML = "Please enter a conversion goal in Regex";
+		conversionGoalMsg.innerHTML = "Please enter a conversion goal corresponding to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>";
 		toggleDisableButton("add", true);
 	}
 });
@@ -124,14 +207,17 @@ conversionGoalInput.addEventListener("input", function(){
 samplePeriodInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(samplePeriodInput);
 	let inputIsInRange = validateMinMax(samplePeriodInput, 4, 12);
+
 	if(inputExists && inputIsInRange){
-		samplePeriodMsg.innerHTML = "Success";
+		samplePeriodMsg.innerHTML = "";
 		toggleDisableButton("add", false);
 		addBasicConfiguration();
 		makeAPICall();
+		
 		//	allow data to be fetched from API before it is displayed in result table
 		let time = 2000 + (requestStrings.length * 500);
 		window.setTimeout(function(){
+			calculatedResult.length = 0;
 			resultData.forEach(calculateResult);
 			displayResult();
 		}, time);
@@ -146,13 +232,30 @@ samplePeriodInput.addEventListener("input", function(){
 	}
 });
 
+samplingLevelInput.addEventListener("input", function(){
+		toggleDisableButton("add", false);
+		addBasicConfiguration();
+		makeAPICall();
+
+		//	allow data to be fetched from API before it is displayed in result table
+		let time = 2000 + (requestStrings.length * 500);
+		window.setTimeout(function(){
+			calculatedResult.length = 0;
+			resultData.forEach(calculateResult);
+			displayResult();
+		}, time);
+});
+
 experimentLengthInput.addEventListener("input", function (){
 	let inputExists = validateNoEmptyInput(experimentLengthInput);
 	let inputIsInRange = validateMinMax(experimentLengthInput, 2, 1000);
+
 	if(inputExists && inputIsInRange){
 		toggleDisableButton("add", false);
-		experimentLengthMsg.innerHTML = "Success";
-
+		
+		//	make sure no error message is displayed
+		experimentLengthMsg.innerHTML = "";
+		
 		//	update basic configuration and re-calculate results
 		addBasicConfiguration();
 		calculateButton();
@@ -170,9 +273,11 @@ experimentLengthInput.addEventListener("input", function (){
 variationsInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(variationsInput);
 	let inputIsInRange = validateMinMax(variationsInput, 2, 100);
+
 	if(inputExists && inputIsInRange){
+		//	make sure no error message is displayed
+		variationsMsg.innerHTML = "";
 		toggleDisableButton("add", false);
-		variationsMsg.innerHTML = "Success";
 
 		//	update basic configuration and re-calculate results
 		addBasicConfiguration();
@@ -188,20 +293,9 @@ variationsInput.addEventListener("input", function(){
 		}
 });
 
-//	Button functions
-function customizeButton (evt){
-	if(evt){
-		evt.preventDefault();
-	}
+//	BUTTON FUNCTIONS
 
-	//	delete the predefined funnel and the data already fetched for it if it exists
-	if(document.getElementById(`trPagePathRow0`)){
-		deletePagePath(null, 0);
-	}
-	toggleCssClass(pagesConfiguration, "hidden");
-}
-
-//	function to add behaviour to add-button
+//	Function to add behaviour to add-button. Can also be called without click on add-button, then without event or event as null
 function addButton(evt){
 	if(evt){
 		evt.preventDefault();
@@ -220,60 +314,57 @@ function addButton(evt){
 				appendConfTableRow(pagePaths[pagePaths.length - 1]);
 				toggleDisableButton("calculate", false);
 				toggleDisableButton("customize", false);
+
+				if(pagesToTestSection.classList.contains("hidden")){
+					removeCssClass(pagesToTestSection, "hidden");		
+				}
+				funnelMsg.innerHTML = "";
+				addCssClass(resultSection, "hidden");
 			} else {
-				console.log('error path', pagePaths[pagePaths.length - 1]);
 				deletePagePath(null, pagePaths[pagePaths.length - 1]);
 				errors = false; 
 			}
 		}, 3000);	
 	}
 
-//	function to add behavior to calculate-button
+//	function to add behavior to calculate-button. Can also be called without click on calculate-button, then without event or event as null
 function calculateButton(evt){
 	if(evt){
 		evt.preventDefault();
 	}
-
+	calculatedOnce = true;
+	
 	//	clear calculatedResult-array from old elements
 	calculatedResult.length = 0;
 	resultData.forEach(function(element){
 		calculateResult(element);
 	 });
+	
+	// Hide page conf-section if it is displayed and calculateButton is called from button
+	if(evt){
+		if(pageConfigurationSection.classList.contains("in")){
+			removeCssClass(pageConfigurationSection, "in");	
+		}
+	}
 	displayResult();
 }
 
-// Function to enable/disable button
-function toggleDisableButton (buttonId, shouldDisable) {
-	// fetch button via DOM
-	let button = document.getElementById(buttonId);
-	
-	// toggle disabled property
-	if(shouldDisable){
-		button.setAttribute("disabled", "disabled");
-	} else {
-		button.removeAttribute("disabled");
+//	function to add behavior to customize-button. Can also be called without click on customize-button, then without event or event as null
+function customizeButton (evt){
+	if(evt){
+		evt.preventDefault();
+	}
+
+	//	delete the predefined funnel and the data already fetched for it if it exists and 
+	// user has not made any calculations on it
+	if(document.getElementById(`trPagePathRow0`) && calculatedOnce === false){
+		deletePagePath(null, 0);
 	}
 }
 
-//	Function to toggle css-class; pass in element and css-class as arguments
-function toggleCssClass(element, className){
-	let elementClasses = element.classList;
-	elementClasses.toggle(className);
-}
+// CONFIGURATION FUNCTIONS
 
-//	Function to add css-class; pass in element and css-class as arguments
-function addCssClass(element, className){
-	let elementClasses = element.classList;
-	elementClasses.add(className);
-}
-
-//	Function to remove css-class; pass in element and css-class as arguments
-function removeCssClass(element, className){
-	let elementClasses = element.classList;
-	elementClasses.remove(className);
-}
-
-//	Function for adding basic configuratíon to conf-array
+//	Function for adding basic configuration to conf-array
 function addBasicConfiguration () {
 	let inputElements = basicConfigurationForm.elements;
 	for(let i = 0; i < inputElements.length; i++){
@@ -281,7 +372,7 @@ function addBasicConfiguration () {
 	}
 }
 
-//	Function for appending page configuration to table by #add-button
+//	Function for appending page configuration to table, called by addButton-function
 function appendConfTableRow(element) {
 	let inputElements = pageConfigurationForm.elements;
 	let tr = document.createElement("tr");
@@ -311,15 +402,15 @@ function appendConfTableRow(element) {
 	let deleteBtn = document.createElement("button");
 	deleteBtn.innerHTML = "Delete";
 	deleteBtn.setAttribute("id", `${element.rowId}deletBtnRow`);
+	deleteBtn.setAttribute("class", "btn btn-default btn-xs");
 	deleteBtn.addEventListener("click", deletePagePath);
 
-	tr.appendChild(deleteBtn);
-	configurationTable.getElementsByTagName("tbody")[0].appendChild(tr);
+	let btnTd = document.createElement("td");
+	btnTd.appendChild(deleteBtn);
+	tr.appendChild(btnTd);
 
-	//	if configuration table is hidden, display it
-	if(configurationTableSection.classList.contains("hidden") === true){
-		toggleCssClass(configurationTableSection, "hidden");
-	}
+	// append complete table row to table
+	configurationTable.getElementsByTagName("tbody")[0].appendChild(tr);
 
 	// if buttons are hidden, display them
 	if(buttonSection.classList.contains("hidden") === true){
@@ -336,14 +427,14 @@ function pushPagePath(){
 		actionGoal : inputElements[1].value,
 		conversionGoal : inputElements[2].value
 	};
-		//	add new object to resultData array for future storage of result
+		//	add new object to resultData array for future storage of result, add rowId for identification
 		resultData.push({rowId});
 		rowId++;
-		//	push newPagePath to pagePaths array
+
 		pagePaths.push(newPagePath);
 }
 
-// function to delete page path from various arrays. rowId only provided if not called from delete button
+// function to delete page path from various arrays. id only provided if not called from delete button
 function deletePagePath(evt, id){
 	if(evt){
 		evt.preventDefault();		
@@ -360,34 +451,35 @@ function deletePagePath(evt, id){
 	let requestStringsIndex = findObjectInArray(requestStrings, "rowId", rowId);
 	requestStrings.splice(requestStringsIndex, 1);
 
-	// 	if called from delete button, delete table row and result data
-	//if(evt){
+	// 	if table row exists, delete it
 		let tableRow = document.getElementById(`trPagePathRow${rowId}`);
-		tableRow.parentElement.removeChild(tableRow);
+		if(tableRow){
+			tableRow.parentElement.removeChild(tableRow);
+		}
 
-		//	delete row in resultData
-		let resultDataIndex = findObjectInArray(resultData, "rowId", rowId);
-		resultData.splice(resultDataIndex, 1);
-	//}
-
-	//	if all page paths are deleted, hide section...
-	if(pagePaths.length === 0){
-		toggleCssClass( pagesToTestSection, "hidden");
+	//	delete row in resultData
+	let resultDataIndex = findObjectInArray(resultData, "rowId", rowId);
+	resultData.splice(resultDataIndex, 1);
+	
+	//	if all page paths are deleted, hide pagesToTestSection and resultSection, disable calculate button.
+	// or if user deletes funnel but hasn't calculated anything yet, do not calculate results
+	// else, recalculate results
+	if(pagePaths.length === 0 ){
+		if(!pagesToTestSection.classList.contains("hidden")){
+			addCssClass( pagesToTestSection, "hidden");
+		}
+		if(!resultSection.classList.contains("hidden")){
+			addCssClass( resultSection, "hidden" );
+		}
+		toggleDisableButton("calculate", true);
+		} else if (calculatedOnce){
+		calculateButton();
 	}
 }
 
-// function for finding corresponding object in array
-function findObjectInArray(array, property, value){
-	let objIndex; 
-	array.findIndex(function(element, index){
-		if(element[property] === value){
-			objIndex = index;
-		}
-	});
-	return objIndex;
-}
+// AUTHORIZATION
 
-// Handles the authorization flow.
+// Function for handling the authorization flow. Called from authorize-button
 function authorize(evt) {
 	evt.preventDefault();
 	// `immediate` should be false when invoked from the button click.
@@ -401,13 +493,15 @@ function authorize(evt) {
 	gapi.client.load('analytics', 'v3').then(function(){
 		gapi.auth.authorize(authData, function(response) {
 	//	if user denies the permission of the app to read Google Analytics data, display 'Authorize'-button so that user can authorize later on if wished
-		  if (response.error) {
-		    authBtn.hidden = false;
+		if (response.error) {
+		    removeCssClass(authBtn, "hidden");
+			addCssClass(logoutBtn, "hidden");
 		} else {
 			gaViewIdInput.disabled = true;
-			authBtn.hidden = true;
-			logoutBtn.hidden = false;
+			toggleCssClass(authBtn, "hidden");
+			toggleCssClass(logoutBtn, "hidden");
 			Object.assign(basicConfiguration, {"gaViewId" : gaViewIdInput.value});
+
 		    //	make initial request
 		    addButton();
 		  	}
@@ -415,7 +509,10 @@ function authorize(evt) {
 	});
 }
 
-//	Function for creating API request string. Arguments - single object from pagePaths array
+
+// FUNCTIONS FOR CREATING REQUEST STRINGS, MAKING API CALLS & SAVING RESPONSE FROM API
+
+//	Function for creating API request strings. 
 function createRequestStrings() {
 	let engagementGoal;
 	let actionGoal; 
@@ -433,15 +530,17 @@ function createRequestStrings() {
 	});
 }
 
-//	Function for sending request to Core reporting API when user is authourized
+
+//	Function for sending request to Core reporting API when user is authourized. Can also be called without click on authorize or add button, then without event or event as null
 function makeAPICall (evt) {
-	//	if called from add-button, only make API call on last added element in request strings array
+	//	if called from add or authorize button, only make API call on last added element in request strings array
 	if(evt){
 	requestStrings[requestStrings.length - 1].forEach(function(element){
 			queryCoreReportingApi(element);
 		});
+
+	//	if called from configuration table on change, make API call on all elements in request strings.
 	} else {
-		//	if called from configuration table on change, make API call on all elements in request strings. Timeout function to prevent exceeding API call limit per second
 		requestStrings.forEach(function(element){
 			element.forEach(function(childElement){
 				queryCoreReportingApi(childElement);
@@ -460,28 +559,29 @@ function queryCoreReportingApi(element) {
     'samplingLevel' : basicConfiguration.samplingLevel,
     'metrics': element.metrics,
     'segment' : element.segment,
-    'max-results' : 10000 //	https://developers.google.com/analytics/devguides/reporting/core/v3/reference#maxResults 
+    'max-results' : 10000 	//	https://developers.google.com/analytics/devguides/reporting/core/v3/reference#maxResults 
   })
   .then(function(response) {
+  	//	Add name of account to top of page
+	accountParagraph.innerHTML = `Account name: ${response.result.profileInfo.profileName}`;
     saveResult(response.result, element.rowId, element.type, element.pagePath, element.actionGoal, element.conversionGoal);
   })
   .then(null, function(err) {
   		errors = true;
   		if(err.status === 400){
-  			console.log('400 error');
+  			funnelMsg.innerHTML = "Either your page path or one of your goals is incorrectly set up. Please make sure they are configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>";
   		} else if (err.status === 403){
   			if(err.result.error.errors[0].reason === "insufficientPermissions"){
   				gaViewIdInput.focus();
-  				toggleCssClass(gaViewIdInput, "incorrectInput");
   				gaViewIdMsg.innerHTML = "Seems like you don't have permissions to view data for this Google Analytics View Id. Did you type in the correct one?";
   			} else {
-
+  				console.log('403 error');
   			}
   		} else {
   			console.log('500/503 error');
   		}
       // Log any errors
-      //console.log(err);
+      console.log(err);
       return errors;
     });
   return errors;
@@ -506,6 +606,8 @@ function saveResult(result, rowId, type, pagePath, actionGoal, conversionGoal){
 		console.log("Unknown type");
 	}
 }
+
+//	FUNCTIONS FOR CALCULATING RESULTS ON FETCHED DATA AND SAVING CALCULATED RESULTS
 
 //	Function for calculating result
 function calculateResult(element){
@@ -569,15 +671,16 @@ function calculateResult(element){
 function saveCalculatedResult(pagePath, actionGoal, conversionGoal, rowId, calculatedValues){
 	let index = findObjectInArray(calculatedResult, "rowId", rowId);
 	let resultObject = calculatedResult[index];
-	let bounceRate = calculatedValues.bounceRate;
-	let engagementGoalUsers = calculatedValues.engagementGoalUsers;
-	let engagementGoalMDU = calculatedValues.engagementGoalMDU;
+	
 	let actionGoalUsers = calculatedValues.actionGoalUsers ;
 	let actionCTR = calculatedValues.actionCTR;
 	let actionGoalMDU = calculatedValues.actionGoalMDU;
+	let bounceRate = calculatedValues.bounceRate;
 	let conversionGoalUsers = calculatedValues.conversionGoalUsers;
 	let conversionRate = calculatedValues.CR;
 	let conversionGoalMinDetectUplift = calculatedValues.conversionGoalMDU;
+	let engagementGoalUsers = calculatedValues.engagementGoalUsers;
+	let engagementGoalMDU = calculatedValues.engagementGoalMDU;
 	
 	Object.assign(resultObject, { 
 		pagePath,
@@ -587,17 +690,16 @@ function saveCalculatedResult(pagePath, actionGoal, conversionGoal, rowId, calcu
 		bounceRate,
 		engagementGoalUsers,
 		engagementGoalMDU,
-		actionGoalUsers,
 		actionCTR,
 		actionGoalMDU,
-		conversionGoalUsers,
 		conversionRate,
 		conversionGoalMinDetectUplift
 	});
 }
 
 function engagementGoalMinDetectUplift(noOfVariations, engagementRateShare, engagementGoalUsers, samplePeriod, maxExperimentLength){
-	let engagementGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-engagementRateShare)/engagementRateShare/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	let engagementGoalMinDetectUplift = Math.sqrt(26*noOfVariations*(1-engagementRateShare)/engagementRateShare/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	engagementGoalMinDetectUplift = canABTest(engagementGoalMinDetectUplift);
 	return engagementGoalMinDetectUplift;
 }
 	
@@ -607,7 +709,8 @@ function actionGoalClickThroughRate(actionGoalUsers, engagementGoalUsers){
 }
 
 function actionGoalMinDetectUplift(noOfVariations, actionGoalClickThroughRate, engagementGoalUsers, samplePeriod, maxExperimentLength){
-	let actionGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-(actionGoalClickThroughRate/100))/(actionGoalClickThroughRate/100)/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	let actionGoalMinDetectUplift = Math.sqrt(26*noOfVariations*(1-(actionGoalClickThroughRate/100))/(actionGoalClickThroughRate/100)/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	actionGoalMinDetectUplift = canABTest(actionGoalMinDetectUplift);
 	return actionGoalMinDetectUplift;
 }
 
@@ -617,20 +720,35 @@ function conversionRate(conversionGoalUsers, engagementGoalUsers){
 }
 
 function conversionGoalMinDetectUplift(noOfVariations, conversionRate, engagementGoalUsers, samplePeriod, maxExperimentLength){
-	let conversionGoalMinDetectUplift = 100 * Math.sqrt(26*noOfVariations*(1-(conversionRate/100))/(conversionRate/100)/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	let conversionGoalMinDetectUplift = Math.sqrt(26*noOfVariations*(1-(conversionRate/100))/(conversionRate/100)/((engagementGoalUsers/samplePeriod)*maxExperimentLength));
+	conversionGoalMinDetectUplift = canABTest(conversionGoalMinDetectUplift);
 	return conversionGoalMinDetectUplift;
 }
 
+function canABTest (mdu){
+	if(mdu < 0.09999){
+		mdu = "<span class=\"glyphicon glyphicon-thumbs-up yes\" aria-hidden=\"true\"></span>";
+	} else if (mdu < 0.19999) {
+		mdu = "<span class=\"glyphicon glyphicon-question-sign maybe\" aria-hidden=\"true\"></span>";
+	} else {
+		mdu = "<span class=\"glyphicon glyphicon-thumbs-down no\" aria-hidden=\"true\"></span>";
+	}
+	return mdu;
+}
+
+//	FUNCTION FOR DISPLAYING RESULT
 
 function displayResult(){
 //	hide section while table is constructed
 toggleCssClass(resultSection, "hidden");
+expLengthSpan.innerHTML = basicConfiguration.experimentLength;
+variationsSpan.innerHTML = basicConfiguration.variations;
 
 //	clear table of old results
 	let tableRows = resultTable.getElementsByTagName("tr");
 	let length = tableRows.length;
 
-	//	2 first elements should always remain
+	//	2 first elements should always remain; contains headers
 	if(length > 2){
 		for(let i = length - 1 ; i > 1; i--){
 		resultTable.getElementsByTagName("tbody")[0].removeChild(tableRows[i]);
@@ -648,8 +766,7 @@ function appendResultTableRow(element){
 	let tr = document.createElement("tr");
 	tr.setAttribute("id", `trResultRow${element.rowId}`);
 
-	//if (!document.getElementById(`trResultRow${element.rowId}`)) {
-		for(let i = 0; i < 12; i++){
+		for(let i = 0; i < 10; i++){
 		var td = document.createElement("td");
 		td.setAttribute("id", `td${i}`);
 
@@ -658,6 +775,7 @@ function appendResultTableRow(element){
 		    td.innerHTML = element.pagePath;
 		    break;
 		  case 1:
+
 		  //	formatting of thousands eg 17000 --> 17 000
 		  //	see http://stackoverflow.com/a/2901298
 		    td.innerHTML = element.engagementGoalUsers.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -666,35 +784,41 @@ function appendResultTableRow(element){
 		    td.innerHTML = `${element.bounceRate.toFixed(1)}%`;
 		    break;
 		  case 3:
-		    td.innerHTML = `${element.engagementGoalMDU.toFixed(1)}%`;
+		    //td.innerHTML = `${element.engagementGoalMDU.toFixed(1)}%`;
+		    td.setAttribute("class", "text-center");
+		    td.innerHTML = element.engagementGoalMDU;
 		    break;
 		  case 4:
 		    td.innerHTML = element.actionGoal;
 		    break;
 		  case 5:
-		  	td.innerHTML = element.actionGoalUsers.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+		  	let ACTR = parseInt(element.actionCTR);
+		  	td.setAttribute("class", "text-center");
+		  	if(isNaN(ACTR)){
+		  		td.innerHTML = "N/A";
+		  	} else {
+		  		td.innerHTML = `${ACTR.toFixed(1)}%`;	
+		  	}
 		    break;
 		  case 6:
-		  	let ACTR = parseInt(element.actionCTR);
-		  	td.innerHTML = `${ACTR.toFixed(1)}%`;
+		  	let AGMDU = parseInt(element.actionGoalMDU);
+			td.innerHTML = element.actionGoalMDU;
 		    break;
 		  case 7:
-		  	let AGMDU = parseInt(element.actionGoalMDU);
-		  	td.innerHTML = `${AGMDU.toFixed(1)}%`;
-		    break;
-		  case 8:
 		  	td.innerHTML = element.conversionGoal;
 		    break;
-		  case 9:
-		  	td.innerHTML = element.conversionGoalUsers.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-		    break;
-		  case 10:
+		  case 8:
 		  	let CR = parseInt(element.conversionRate);
-		  	td.innerHTML = `${CR.toFixed(1)}%`;
+		  	td.setAttribute("class", "text-center");
+		  	if(isNaN(CR)){
+		  		td.innerHTML = "N/A";
+		  	} else {		  		
+		  		td.innerHTML = `${CR.toFixed(1)}%`;
+		  	}
 		    break;
-		  case 11:
+		  case 9:
 		  	let CGMDU = parseInt(element.conversionGoalMinDetectUplift);
-		  	td.innerHTML = `${CGMDU.toFixed(1)}%`;
+		  	td.innerHTML = element.conversionGoalMinDetectUplift;
 		    break;
 		  default:
 		    td.innerHTML = "nothing yet";
@@ -703,27 +827,5 @@ function appendResultTableRow(element){
 		tr.appendChild(td);
 		resultTable.getElementsByTagName("tbody")[0].appendChild(tr);
 		}
-	//}
 }
 
-// 	Function to validaten that input is not empty
-function validateNoEmptyInput(inputElement){
-	let pass;
-	if(inputElement.value){
-		pass = true;
-	} else {
-		pass = false;
-		}
-	return pass; 
-}
-
-//	Function for validating number input
-function validateMinMax(inputElement, min, max){
-	let pass;
-	if(inputElement.value >= min && inputElement.value <= max){
-		pass = true;
-	} else {
-		pass = false;
-		}
-	return pass;
-}
