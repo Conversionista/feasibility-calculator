@@ -17,7 +17,7 @@
 	</div>
 
 	<div class="row">
-		<form class="form-inline col-sm-8 col-sm-offset-3 col-xs-12">
+		<form class="form-inline col-sm-9 col-sm-offset-3">
 			<label for="gaViewId">Google analytics view ID:</label>
 		    <input type="number" id="gaViewId" name="gaViewId" min="0" step="1" required placeholder="123456789" class="form-control"/>
 		  	<button id="authButton" class="btn btn-info" disabled>Authorize</button>
@@ -103,8 +103,24 @@
 			<h2 class="text-center text-uppercase">Result</h2>
 		</div>
 
+		<form class="form" id="basicConfigurationForm1">
+			<div class="row">
+				<div class="form-group">
+					<div class="col-sm-4 col-sm-offset-2 text-center">
+						<label for="experimentLength" class="control-label">Maximum experiment length (weeks): <span id="expLength"></span> </label>
+						<input type="range" id="experimentLength" name="experimentLength"  value="2" min="2" max="100" step="1" required class="	form-control"/>
+					</div>
+					<div class="col-sm-4  text-center">
+						<label for="variations" class="control-label">Number of variations:<span id="noVariations"></span> </label>
+						<input type="range" id="variations" name="variations"  value="2" min="2" max="100" step="1" required class="form-control"/>
+					</div>
+				</div>
+			</div>
+		</form>
+
 		<div class="row">
-			<p id="testSetup" class="text-center bold">Experiment length: <span id="expLength"></span> No of variations: <span id="noVariations"></span></p>
+			<span id="experimentLengthMsg" class="col-sm-4 col-sm-offset-2"></span>
+			<span id="variationsMsg" class="col-sm-4"></span>
 		</div>
 
 		<div class="row">
@@ -140,18 +156,16 @@
 
 		<div class="row">	
 		<div id="configuration" class="collapse">
-			<form id="basicConfigurationForm" class="form">
+			<form id="basicConfigurationForm2" class="form">
 
 			<div class="row">
-				<label for="samplingLevel" class="col-sm-3 control-label">Sampling level: </label>
-				<label for="samplePeriod" class="col-sm-3 control-label">Sample period (weeks): </label>
-				<label for="experimentLength" class="col-sm-3 control-label">Maximum experiment length (weeks): </label>
-				<label for="variations" class="col-sm-3 control-label">Number of variations: </label>
+				<label for="samplingLevel" class="col-sm-4 col-sm-offset-2 control-label">Sampling level: </label>
+				<label for="samplePeriod" class="col-sm-4 control-label">Sample period (weeks): </label>
 			</div>
 
 			<div class="row">
 				<div class="form-group">
-					<div class="col-sm-3">
+					<div class="col-sm-4 col-sm-offset-2">
 						<select id="samplingLevel" name="samplingLevel" class="form-control">
 						<option value="DEFAULT">Default</option>
 						<option value="FASTER">Faster</option>
@@ -159,24 +173,15 @@
 						</select>
 					</div>
 
-					<div class="col-sm-3">
+					<div class="col-sm-4">
 						<input type="number" id="samplePeriod" name="samplePeriod"  value="4" min="4" max="12" step="1" required class="form-control"/>
 					</div>
-
-					<div class="col-sm-3">
-						<input type="number" id="experimentLength" name="experimentLength"  value="2" min="2" max="100" step="1" required class="	form-control"/>
-					</div>
-					<div class="col-sm-3">
-						<input type="number" id="variations" name="variations"  value="2" min="2" max="100" step="1" required class="form-control"/>
-					</div>
-					</div>
+				</div>
 			</div>
 			
 			</form>
 			<div class="row">
-				<span id="samplePeriodMsg" class="col-sm-3 col-sm-offset-3"></span>
-				<span id="experimentLengthMsg" class="col-sm-3"></span>
-				<span id="variationsMsg" class="col-sm-3"></span>
+				<span id="samplePeriodMsg" class="col-sm-4 col-sm-offset-6"></span>
 			</div>
 		</div>
 		</div>

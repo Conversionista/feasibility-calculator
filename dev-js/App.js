@@ -37,7 +37,8 @@ let authBtn = document.getElementById("authButton");
 let buttonSection = document.getElementById("buttons");
 
 let basicConfigurationSection = document.getElementById("configuration");
-let basicConfigurationForm = document.getElementById("basicConfigurationForm");
+let basicConfigurationForm1 = document.getElementById("basicConfigurationForm1");
+let basicConfigurationForm2 = document.getElementById("basicConfigurationForm2");
 let calculateBtn = document.getElementById("calculate");
 
 let expLengthSpan = document.getElementById("expLength");
@@ -163,6 +164,7 @@ gaViewIdInput.addEventListener("input", function(){
 	if(inputExists){
 		toggleDisableButton("authButton", false);
 		toggleDisableButton("add", false);
+		gaViewIdMsg.innerHTML = "";
 	} else {
 		gaViewIdMsg.innerHTML = "Please enter your Google Analytics View ID. You find it in Google Analytics --> Admin --> View --> View Settings --> View ID";
 		toggleDisableButton("add", true);
@@ -246,6 +248,8 @@ samplingLevelInput.addEventListener("input", function(){
 		}, time);
 });
 
+//	NOTE: validation of this input element is not necessary since input is of type range - but validation is still
+// made in case input type is changed to number
 experimentLengthInput.addEventListener("input", function (){
 	let inputExists = validateNoEmptyInput(experimentLengthInput);
 	let inputIsInRange = validateMinMax(experimentLengthInput, 2, 1000);
@@ -270,6 +274,8 @@ experimentLengthInput.addEventListener("input", function (){
 	}
 });
 
+//	NOTE: validation of this input element is not necessary since input is of type range - but validation is still
+// made in case input type is changed to number
 variationsInput.addEventListener("input", function(){
 	let inputExists = validateNoEmptyInput(variationsInput);
 	let inputIsInRange = validateMinMax(variationsInput, 2, 100);
@@ -366,7 +372,9 @@ function customizeButton (evt){
 
 //	Function for adding basic configuration to conf-array
 function addBasicConfiguration () {
-	let inputElements = basicConfigurationForm.elements;
+	let inputElements1 = basicConfigurationForm1.elements;
+	let inputElements2 = basicConfigurationForm2.elements;
+	let inputElements = [...inputElements1, ...inputElements2];
 	for(let i = 0; i < inputElements.length; i++){
 		Object.assign(basicConfiguration, { [inputElements[i].name] : inputElements[i].value});
 	}
@@ -727,11 +735,11 @@ function conversionGoalMinDetectUplift(noOfVariations, conversionRate, engagemen
 
 function canABTest (mdu){
 	if(mdu < 0.09999){
-		mdu = "<span class=\"glyphicon glyphicon-thumbs-up yes\" aria-hidden=\"true\"></span>";
+		mdu = "<span class=\"glyphicon glyphicon-thumbs-up yes\" aria-hidden=\"true\"></span><span class=\"hidden\">Yes</span>";
 	} else if (mdu < 0.19999) {
-		mdu = "<span class=\"glyphicon glyphicon-question-sign maybe\" aria-hidden=\"true\"></span>";
+		mdu = "<span class=\"glyphicon glyphicon-question-sign maybe\" aria-hidden=\"true\"></span><span class=\"hidden\">Maybe</span>";
 	} else {
-		mdu = "<span class=\"glyphicon glyphicon-thumbs-down no\" aria-hidden=\"true\"></span>";
+		mdu = "<span class=\"glyphicon glyphicon-thumbs-down no\" aria-hidden=\"true\"></span><span class=\"hidden\">No</span>";
 	}
 	return mdu;
 }
@@ -784,7 +792,6 @@ function appendResultTableRow(element){
 		    td.innerHTML = `${element.bounceRate.toFixed(1)}%`;
 		    break;
 		  case 3:
-		    //td.innerHTML = `${element.engagementGoalMDU.toFixed(1)}%`;
 		    td.setAttribute("class", "text-center");
 		    td.innerHTML = element.engagementGoalMDU;
 		    break;
