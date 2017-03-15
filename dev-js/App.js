@@ -459,8 +459,8 @@ function deletePagePath(evt, id){
 	let requestStringsIndex = findObjectInArray(requestStrings, "rowId", deleteId );
 	requestStrings.splice(requestStringsIndex, 1);
 
-	// 	if called from delete button and table row exists, delete it
-	if(evt){
+	// 	if called from delete button or if calculated once is false, and table row exists, delete it
+	if(evt || !calculatedOnce){
 	let tableRow = document.getElementById(`trPagePathRow${deleteId }`);
 	if(tableRow){
 		tableRow.parentElement.removeChild(tableRow);
@@ -476,7 +476,7 @@ function deletePagePath(evt, id){
 		}	
 	} else {
 		// solution for deleting result data row when not called from event
-		let resultDataIndex = findObjectInArray(resultData, "rowId", (rowId -1));
+		let resultDataIndex = findObjectInArray(resultData, "rowId", (rowId - 1));
 		let resultDataRow = resultData[resultDataIndex];
 		if(resultDataRow){
 			resultData.splice(resultDataIndex, 1);		
