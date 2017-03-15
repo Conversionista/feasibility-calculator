@@ -324,7 +324,7 @@ function addButton(evt){
 			if(configurationTable.classList.contains("hidden")){
 				removeCssClass( configurationTable, "hidden");
 			}
-				funnelMsg.innerHTML = "";
+				funnelMsg.innerHTML = "Please enter a page path as a regular expression. Action and conversion goals needs to be configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>.";
 				addCssClass(resultSection, "hidden");
 			} else {
 				deletePagePath(null, (pagePaths.length - 1));
@@ -596,19 +596,24 @@ function queryCoreReportingApi(element) {
   .then(null, function(err) {
   		errors = true;
   		if(err.status === 400){
-  			funnelMsg.innerHTML = "Either your page path or one of your goals is incorrectly set up. Please make sure they are configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>";
+  			funnelMsg.innerHTML = "Either your page path or one of your goals is incorrectly set up. Please make sure they are configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>.";
   		} else if (err.status === 403){
   			if(err.result.error.errors[0].reason === "insufficientPermissions"){
   				gaViewIdInput.focus();
   				gaViewIdMsg.innerHTML = "Seems like you don't have permissions to view data for this Google Analytics View Id. Did you type in the correct one?";
   			} else {
-  				console.log('403 error');
+  				funnelMsg.innerHTML = "The API call limit has been exceeded - please remove some of your funnels and try again.";
+
+  			//	TO DO: HANDLE THIS KIND OF ERROR in relevant way. 
   			}
-  		} else {
-  			console.log('500/503 error');
+  		} else if (err.status === 500 || err.status === 503){
+  			//	500/503 error = Unexpected internal server error/server returned an error
+  			//	Query should not be retried - reload app ---> QUICK FIX. 
+  			//	TO DO: handle with expontential back off, see:
+  			//	https://developers.google.com/analytics/devguides/reporting/core/v3/errors#handling_500_or_503_responses
+  			document.body.innerHTML = "An unexpected error occured. App will reload";
+  			window.location.reload(true);
   		}
-      // Log any errors
-      console.log(err);
       return errors;
     });
   return errors;
