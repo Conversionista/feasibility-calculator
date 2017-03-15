@@ -321,16 +321,16 @@ function addButton(evt){
 				toggleDisableButton("calculate", false);
 				toggleDisableButton("customize", false);
 
-				if(pagesToTestSection.classList.contains("hidden")){
-					removeCssClass(pagesToTestSection, "hidden");		
-				}
+			if(configurationTable.classList.contains("hidden")){
+				removeCssClass( configurationTable, "hidden");
+			}
 				funnelMsg.innerHTML = "";
 				addCssClass(resultSection, "hidden");
 			} else {
-				deletePagePath(null, pagePaths[pagePaths.length - 1]);
-				errors = false; 
+				deletePagePath(null, (pagePaths.length - 1));
+				//errors = false; 
 			}
-		}, 3000);	
+		}, 3000);
 	}
 
 //	function to add behavior to calculate-button. Can also be called without click on calculate-button, then without event or event as null
@@ -449,32 +449,46 @@ function deletePagePath(evt, id){
 	}
 
 	// if evt, rowId is fetched from delete button id, otherwise passed to function
-	let rowId = evt ? parseInt(this.id) : id;
+	let deleteId = evt ? parseInt(this.id) : id;
 	
 	//	delete row in pagePaths
-	let pagePathsIndex = findObjectInArray(pagePaths, "rowId", rowId);
+	let pagePathsIndex = findObjectInArray(pagePaths, "rowId", deleteId );
 	pagePaths.splice(pagePathsIndex, 1);
 
 	//	delete row in requestStrings
-	let requestStringsIndex = findObjectInArray(requestStrings, "rowId", rowId);
+	let requestStringsIndex = findObjectInArray(requestStrings, "rowId", deleteId );
 	requestStrings.splice(requestStringsIndex, 1);
 
-	// 	if table row exists, delete it
-		let tableRow = document.getElementById(`trPagePathRow${rowId}`);
-		if(tableRow){
-			tableRow.parentElement.removeChild(tableRow);
+	// 	if called from delete button and table row exists, delete it
+	if(evt){
+	let tableRow = document.getElementById(`trPagePathRow${deleteId }`);
+	if(tableRow){
+		tableRow.parentElement.removeChild(tableRow);
 		}
-
-	//	delete row in resultData
-	let resultDataIndex = findObjectInArray(resultData, "rowId", rowId);
-	resultData.splice(resultDataIndex, 1);
+	}
+	
+	//	if row exists, delete row in resultData
+	if(evt){	
+		let resultDataIndex = findObjectInArray(resultData, "rowId", deleteId);
+		let resultDataRow = resultData[resultDataIndex];
+		if(resultDataRow){
+			resultData.splice(resultDataIndex, 1);		
+		}	
+	} else {
+		// solution for deleting result data row when not called from event
+		let resultDataIndex = findObjectInArray(resultData, "rowId", (rowId -1));
+		let resultDataRow = resultData[resultDataIndex];
+		if(resultDataRow){
+			resultData.splice(resultDataIndex, 1);		
+		}
+	}
 	
 	//	if all page paths are deleted, hide pagesToTestSection and resultSection, disable calculate button.
-	// or if user deletes funnel but hasn't calculated anything yet, do not calculate results
-	// else, recalculate results
+	//	or if user deletes funnel but hasn't calculated anything yet, do not calculate results
+	//	else, recalculate results
 	if(pagePaths.length === 0 ){
-		if(!pagesToTestSection.classList.contains("hidden")){
-			addCssClass( pagesToTestSection, "hidden");
+		if(!configurationTable.classList.contains("hidden")){
+			addCssClass( configurationTable, "hidden");
 		}
 		if(!resultSection.classList.contains("hidden")){
 			addCssClass( resultSection, "hidden" );
@@ -482,6 +496,11 @@ function deletePagePath(evt, id){
 		toggleDisableButton("calculate", true);
 		} else if (calculatedOnce){
 		calculateButton();
+	}
+
+	//	if no event, reset errors.error after paths have been deleted
+	if(!evt){
+		errors = false;
 	}
 }
 
