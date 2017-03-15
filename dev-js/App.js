@@ -324,6 +324,7 @@ function addButton(evt){
 			if(configurationTable.classList.contains("hidden")){
 				removeCssClass( configurationTable, "hidden");
 			}
+				removeCssClass(funnelMsg, "error");
 				funnelMsg.innerHTML = "Please enter a page path as a regular expression. Action and conversion goals needs to be configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>.";
 				addCssClass(resultSection, "hidden");
 			} else {
@@ -596,12 +597,16 @@ function queryCoreReportingApi(element) {
   .then(null, function(err) {
   		errors = true;
   		if(err.status === 400){
-  			funnelMsg.innerHTML = "Either your page path or one of your goals is incorrectly set up. Please make sure they are configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>.";
+  			window.scrollTo(pageConfigurationSection.offsetLeft,pageConfigurationSection.offsetTop);
+  			addCssClass(funnelMsg, "error");
+  			funnelMsg.innerHTML = "Either your page path or one of your goals is incorrectly set up. Please make sure the page path is written as a regular expression and your goals are configured accordning to <a href=\"https://developers.google.com/analytics/devguides/reporting/core/dimsmets#segments=true&cats=custom_variables_or_columns,ecommerce,page_tracking\" target=\"_blank\">Googles core reporting API</a>.";
   		} else if (err.status === 403){
   			if(err.result.error.errors[0].reason === "insufficientPermissions"){
   				gaViewIdInput.focus();
   				gaViewIdMsg.innerHTML = "Seems like you don't have permissions to view data for this Google Analytics View Id. Did you type in the correct one?";
   			} else {
+  				window.scrollTo(pageConfigurationSection.offsetLeft,pageConfigurationSection.offsetTop);
+  				addCssClass(funnelMsg, "error");
   				funnelMsg.innerHTML = "The API call limit has been exceeded - please remove some of your funnels and try again.";
 
   			//	TO DO: HANDLE THIS KIND OF ERROR in relevant way. 
