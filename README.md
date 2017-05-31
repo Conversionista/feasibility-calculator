@@ -10,7 +10,7 @@ A Conversionista! app
 ### Prerequisites
 - Node v?.?
 
-# serve with hot reload at localhost:8080
+# serve with hot reload at [localhost:8080](http://localhost:8080)
 `npm run dev`
 
 # build for production with minification
